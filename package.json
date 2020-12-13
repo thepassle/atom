@@ -1,0 +1,22 @@
+{
+  "name": "@klaxon/atom",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "wds --watch --node-resolve",
+    "docs:start": "rocket start",
+    "docs:build": "rocket build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@d4kmor/cli": "^0.11.0",
+    "@d4kmor/launch": "^0.10.0",
+    "@web/dev-server": "0.0.28",
+    "@web/test-runner": "^0.10.1",
+    "hanbi": "^0.4.1",
+    "lit-element": "^2.4.0"
+  }
+}

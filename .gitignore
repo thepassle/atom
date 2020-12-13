@@ -1,0 +1,7 @@
+docs/_merged_data/
+docs/_merged_assets/
+docs/_merged_includes/
+node_modules/
+package-lock.json
+.DS_Store
+_site-dev/
