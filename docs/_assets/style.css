@@ -68,6 +68,20 @@ wcd-snippet.landing-page pre {
   width: 100%;
 }
 
+wcd-snippet::part(button) {
+  background: #2d3339;
+}
+
+wcd-snippet::part(button):hover {
+  color: rgb(246 167 186);
+}
+
+@media(max-width: 480px) {
+  wcd-snippet.landing-page {
+    width: 100%;
+  }
+}
+
 .markdown-body .call-to-action, .markdown-body .call-to-action {
   background: rgb(246 167 186 / 0.10);
   border: solid 2px var(--primary-color);
@@ -137,15 +151,15 @@ html {
   --markdown-table-border-color: #8e8e8e;
 
   --markdown-syntax-background-color: rgb(27, 29, 35);
-  --markdown-syntax-atrule-color: rgb(198, 120, 221);
-  --markdown-syntax-attr-name-color: rgb(198, 120, 221);
+  --markdown-syntax-atrule-color: rgb(246 167 186);
+  --markdown-syntax-attr-name-color: rgb(246 167 186);
   --markdown-syntax-boolean-color: rgb(209, 154, 102);
   --markdown-syntax-class-name-color: rgb(97, 175, 239);
   --markdown-syntax-constant-color: rgb(220, 220, 170);
   --markdown-syntax-entity-color: rgb(220, 220, 170);
   --markdown-syntax-function-color: rgb(97, 175, 239);
   --markdown-syntax-inserted-color: rgb(220, 220, 170);
-  --markdown-syntax-keyword-color: rgb(198, 120, 221);
+  --markdown-syntax-keyword-color: rgb(246 167 186);
   --markdown-syntax-number-color: rgb(220, 220, 170);
   --markdown-syntax-operator-color: rgb(220, 220, 170);
   --markdown-syntax-property-color: rgb(220, 220, 170);
@@ -156,6 +170,7 @@ html {
   --markdown-syntax-tag-color: rgb(86, 156, 214);
   --markdown-syntax-url-color: rgb(220, 220, 170);
   --markdown-syntax-variable-color: rgb(220, 220, 170);
+  --markdown-syntax-keyword-color: rgb(246 167 186);
 }
 
 .string {

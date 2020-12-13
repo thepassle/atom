@@ -1,31 +1,8 @@
-<script type="module" src="../../components/wcd-snippet.js"></script>
-
-<wcd-snippet data-id="zDEaYmCdY6qQs0Cmd0Qb">
-
-  ```js zDEaYmCdY6qQs0Cmd0Qb
-    import { atom } from '@klaxon/atom';
-
-    const [count, setCount] = atom({
-      key: 'count',
-      default: 1
-    });
-
-    console.log(count.getState()); // 1
-
-    setCount(2);
-
-    setCount(old => old + 1);
-
-    console.log(count.getState()); // 3
-  ```
-
-</wcd-snippet>
-
-# Atoms
+# Atoms || 1
 
 ## Introduction
 
-Atoms represent small pieces of reusable and shareable state, and maintain their own internal stores. Atoms represent small pieces of reusable state, and maintain their own internal store. Whenever an update is triggered (by calling the setter function of that Atom), the Atoms store dispatches an event. All components (and Selectors) that are subscribed to that Atom will get the event, trigger an update, and cause only the relevant component components to update and rerender.
+Atoms represent small pieces of reusable and shareable state, and maintain their own internal stores. Atoms represent small pieces of reusable state, and maintain their own internal store. Whenever an update is triggered (by calling the setter function of that Atom), the Atoms store dispatches an event. All components (and Selectors) that are subscribed to that Atom will get the event, trigger an update, and cause only the relevant components to update and rerender.
 
 ```js
 import { atom } from '@klaxon/atom';
@@ -70,7 +47,7 @@ console.log(obj.getState()); // {text: 'hello!', age: 30}
 
 Etcetera.
 
-## Registering atoms
+## Registering Atoms
 
 You can apply an Atom to your component by adding it to the static `atoms` getter, and using the `LitAtom` Mixin:
 

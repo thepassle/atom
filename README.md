@@ -14,7 +14,7 @@ npm i -S @klaxon/atom
 
 ### Atoms
 
-Atoms represent small pieces of reusable state, and maintain their own internal store. Whenever an update is triggered (by calling the setter function of that Atom), the Atom store dispatches an event. All components that are subscribed to that Atom will get the event, trigger an update, and cause only the relevant component components to update and rerender.
+Atoms represent small pieces of reusable state, and maintain their own internal store. Whenever an update is triggered (by calling the setter function of that Atom), the Atom store dispatches an event. All components that are subscribed to that Atom will get the event, trigger an update, and cause only the relevant components to update and rerender.
 
 ```js
 import { atom } from '@klaxon/atom';
