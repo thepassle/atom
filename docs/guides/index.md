@@ -102,5 +102,4 @@ Currently there is only one integration for Atom, implemented for [LitElement](h
 
 - namespacing
 - `atomFamily` utility; essentially an Atom that can hold many Atoms
-- Performance optimization: batch nested Selector calls (only run a Selectors `get` once when multiple Selectors/components depend on it)
 - Devtools

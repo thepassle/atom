@@ -217,6 +217,16 @@ The `result` property will be populated with the return value of the `loadable` 
 You can use a loadable Atom in your components like this:
 
 ```js
+const [query, setQuery] = atom({
+  key: 'query',
+  // you can optionally use a default parameter
+  loadable: async (id = 1) => {
+    const res = await fetch(`https://swapi.dev/api/people/${id}`);
+    const body = await res.json();
+    return body;
+  }
+});
+
 class MyApp extends LitAtom(LitElement) {
   static get atoms() {
     return [query];
@@ -234,6 +244,7 @@ class MyApp extends LitAtom(LitElement) {
       case 'error':
         return html`error! :(`
       case 'pending':
+      case 'initialized':
         return html`Loading...`
     }
   }
