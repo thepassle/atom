@@ -218,6 +218,7 @@
           case 'error':
             return html`error! :(`
           case 'pending':
+          case 'initialized':
             return html`Loading...`
         }
       }
