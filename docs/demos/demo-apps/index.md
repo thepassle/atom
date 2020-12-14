@@ -1,6 +1,8 @@
 <script type="module" src="../../components/wcd-snippet.js"></script>
 
-# Todo app || 7
+# Demo apps || 7
+
+## Simple to do app
 
 <wcd-snippet data-id="e530K7dhKDxqpoocCOu5">
 
@@ -69,6 +71,39 @@
     }
 
     customElements.define('todo-app', TodoList);
+  ```
+
+</wcd-snippet>
+
+## Advanced to do app
+
+<wcd-snippet data-id="A80qn3Jw65cvZPT8gp4Q">
+
+  ```js
+    import { LitElement, html, css} from 'lit-element';
+    import './todo-debug.js';
+    import './todo-list.js';
+    import './todo-detail.js';
+
+    class TodoApp extends LitElement {
+      static get styles() {
+        return css`
+          :host {
+            height: 100vw;
+            display: flex;
+          }
+        `
+      }
+      render() {
+        return html`
+          <todo-debug></todo-debug>
+          <todo-list></todo-list>
+          <todo-detail></todo-detail>
+        `
+      }
+    }
+
+    customElements.define('todo-app', TodoApp);
   ```
 
 </wcd-snippet>
