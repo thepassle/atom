@@ -9,6 +9,14 @@ callToActionItems: [{ text: 'get started', href: '/guides/' }]
 
 ## Quickstart 👇
 
+> Update only relevant bits of state, rerender only what has changed 👌
+
+<div id="graph">
+
+![illustration of Atoms inner workins](./graph.svg)
+
+</div>
+
 ### Install
 
 Install with npm:
