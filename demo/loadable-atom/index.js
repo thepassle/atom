@@ -24,12 +24,18 @@ class MyApp extends LitAtom(LitElement) {
     return [query];
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    setQuery();
+  }
+
   render() {
     switch(this.query.status) {
       case 'success':
         return html`Success! ${this.query.result.name}`;
       case 'error':
         return html`error! :(`;
+      case 'initialized':
       case 'pending':
       default:
         return html`Loading...`;

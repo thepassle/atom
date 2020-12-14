@@ -37,7 +37,7 @@ export const atoms = new Map();
 /** @type {Map<string, Selector>} */
 export const selectors = new Map();
 
-const loadableState = { status: 'pending', result: {}};
+const loadableState = { status: 'initialized', result: {}};
 
 /** @param {Atom} atom */
 const notify = atom => {
@@ -73,10 +73,6 @@ export const atom = ({key, default: val, loadable, effects}) => {
     if(loadable) {
       atom.state = loadableState;
       atom.loadable = loadable;
-      loadable()
-        .then((res) => {atom.state = {status: 'success', result: res}})
-        .catch((err) => {atom.state = {status: 'error', result: err}})
-        .finally(() => {notify(atom)});
     }
 
     atom.effects = effects || [];
@@ -94,7 +90,7 @@ export const atom = ({key, default: val, loadable, effects}) => {
   loadable 
     ? (val) => {
         const atom = atoms.get(key);
-        atom.state = loadableState;
+        atom.state = { ...loadableState, status: 'loading' };
 
         notify(atom);
         atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];

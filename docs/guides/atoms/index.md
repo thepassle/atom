@@ -196,17 +196,20 @@ This Atoms store will be an object that looks like this:
 
 ```js
 {
-  status: "pending",
+  status: "initialized",
   result: {}
 }
 ```
 
 A `loadable` Atoms `status` can either be:
+- `"initialized"`
 - `"pending"` 
 - `"success"` 
 - `"error"` 
 
-Whenever the status of the `loadable` promise changes (on success or on error), the Atom will notify itself and trigger an update in your component or any Selectors that may depend on it.
+To actually execute the `loadable` function, you can run the `setQuery` function in the `connectedCallback` of your component (or anywhere you need to call it). Multiple components can safely make use of shared `loadable` Atoms, because the `loadable` function only executes when you explicitly call the Atoms setter function, but the state of the Atom is still shared and updated between components.
+
+Whenever the status of the `loadable` promise changes (on load, on success or on error), the Atom will notify itself and trigger an update in your component or any Selectors that may depend on it.
 The `result` property will be populated with the return value of the `loadable` promise, or, in case of error; the error.
 
 ### Usage in components:
@@ -217,6 +220,11 @@ You can use a loadable Atom in your components like this:
 class MyApp extends LitAtom(LitElement) {
   static get atoms() {
     return [query];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    setQuery();
   }
 
   render() {
@@ -267,6 +275,7 @@ const renderStatus = selector({
         return html`Success! ${result.name}`
       case 'error':
         return html`error! :(`
+      case 'initiliazed':
       case 'pending':
         return html`Loading...`
     }
@@ -276,6 +285,11 @@ const renderStatus = selector({
 class MyApp extends LitAtom(LitElement) {
   static get selectors() {
     return [renderStatus];
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    setQuery();
   }
 
   render() {

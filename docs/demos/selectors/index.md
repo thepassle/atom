@@ -228,6 +228,11 @@
         return [renderStatus];
       }
 
+      connectedCallback() {
+        super.connectedCallback();
+        setQuery();
+      }
+
       render() {
         return this.renderStatus;
       }
