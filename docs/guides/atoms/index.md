@@ -144,6 +144,36 @@ const createTodo = id => atom({
 const [todo, setTodo] = createTodo(1);
 ```
 
+## Data fetching
+
+A simple way of changing state when fetching data could look like this:
+
+```js
+const [character, setCharacter] = atom({
+  key: 'character',
+  default: {
+    status: 'pending',
+    result: {}
+  }
+});
+
+async function getStarwarsCharacter(id) {
+  setCharacter(old => ({...old, status: 'pending'}));
+  try { 
+    const res = await fetch(`https://swapi.dev/api/people/${id}`);
+    const body = await res.json();
+    setCharacter({
+      status: 'success',
+      result: body
+    });
+  } catch {
+    setCharacter(old => ({...old, status: 'error'}));
+  }
+}
+```
+
+However, Atom also comes with the concept of _async_, or _loadable_ Atoms that can help simplify this pattern:
+
 ## Async Atoms
 
 You can also use Atoms for fetching data, or doing asynchronous work.
@@ -221,13 +251,13 @@ You can also combine loadable Atoms with Selectors. Whenever the `status` of the
 const [query, setQuery] = atom({
   key: 'query',
   loadable: async (id = 1) => {
-    const res = await fetch(`https://swapi.dev/api/people/${id}`);
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
     const body = await res.json();
     return body;
   }
 });
 
-const renderStatus = selectors({
+const renderStatus = selector({
   key: 'renderStatus',
   get: ({getAtom}) => {
     const { status, result } = getAtom(query);

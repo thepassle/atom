@@ -1,7 +1,7 @@
 ---
 title: atom
 layout: home.njk
-slogan: A flexible state manager
+slogan: A flexible state manager leveraging modern web features
 callToActionItems: [{ text: 'get started', href: '/guides/' }]
 ---
 
