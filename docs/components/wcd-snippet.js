@@ -54,7 +54,7 @@ template.innerHTML = `
   
   <div id="snippet"><slot></slot></div>
 
-  <iframe part="iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+  <iframe part="iframe" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
 
   <button part="button">Show Live</button>
 `;

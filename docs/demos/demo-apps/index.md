@@ -4,73 +4,93 @@
 
 ## Simple to do app
 
-<wcd-snippet data-id="e530K7dhKDxqpoocCOu5">
+<wcd-snippet data-id="pBCtxnMHtLGtLN7poFo4">
 
   ```js
-    import { LitElement, html } from 'lit-element';
-    import { LitAtom, atom, selector } from '@klaxon/atom';
+    import { LitElement, html, css } from "lit-element";
+    import { LitAtom, atom, selector } from "@klaxon/atom";
 
-    export const [todoListFilter, setTodoListFilter] = atom({
-      key: 'todoListFilter',
-      default: 'Show All',
+    const [todos, setTodos] = atom({
+      key: 'todos',
+      default: [{id: Date.now(), text: 'todo', isComplete: false}]
     });
 
-    export const [todoList, setTodoList] = atom({
-      key: 'todoList',
-      default: [
-        {text: 'not done', isComplete: false, id: 0},
-        {text: 'done', isComplete: true, id: 1},
-      ]
+    const [filter, setFilter] = atom({
+      key: 'filter',
+      default: 'all'
     });
 
-    const filteredTodoList = selector({
-      key: 'filteredTodoList',
+    const filteredTodos = selector({
+      key: 'filteredTodos',
       get: ({getAtom}) => {
-        const filter = getAtom(todoListFilter);
-        const list = getAtom(todoList);
+        const todoList = getAtom(todos);
+        const todoFilter = getAtom(filter);
 
-        switch (filter) {
-          case 'Show Completed':
-            return list.filter((item) => item.isComplete);
-          case 'Show Uncompleted':
-            return list.filter((item) => !item.isComplete);
-          default:
-            return list;
+        switch(todoFilter) {
+          case 'active':
+            return todoList.filter(todo => !todo.isComplete);
+          case 'completed':
+            return todoList.filter(todo => todo.isComplete);
+          case 'all':
+            return todoList;
         }
-      },
+      }
     });
 
-    class TodoList extends LitAtom(LitElement) {
-      static get atoms() {
-        return [todoListFilter];
-      }
 
-      static get selectors() {
-        return [filteredTodoList];
-      }
+    const addTodo = e => {
+      e.preventDefault();
+      setTodos(old => [
+        ...old,
+        {
+          id: Date.now(),
+          text: e.target.elements.todo.value,
+          isComplete: false
+        }
+      ])
+    }
+
+    export class TodoApp extends LitAtom(LitElement) {
+      static atoms = [todos, filter];
+      static selectors = [filteredTodos];
 
       render() {
         return html`
+          <h1>todos</h1>
+          
+          <form @submit=${addTodo}>
+            <input name="todo" placeholder="What needs to be done?"/>
+            <button type="submit">submit</button>
+          </form>
+
+          <ul>
+            ${this.filteredTodos?.map(({text, isComplete, id}) => html`
+              <li>
+                <input 
+                  type="checkbox" 
+                  .checked=${isComplete} 
+                  @change=${() => setTodos(old => old.map(todo => todo.id === id ? {...todo, isComplete: true} : todo))} 
+                />
+                <p>${text}</p>
+                <button @click=${() => setTodos(old => old.filter(todo => todo.id !== id))}>❌</button>
+              </li>
+            `)}
+          </ul>
+
           <div>
-            <h1>${this.todoListFilter}</h1>
-            <button @click=${() => setTodoListFilter("Show All")}>show all</button>
-            <button @click=${() => setTodoListFilter("Show Completed")}>show completed</button>
-            <button @click=${() => setTodoListFilter("Show Uncompleted")}>show uncompleted</button>
-          </div>
-          <br/>
-          <div>
-            <button @click=${() => setTodoList((oldTodoList) => [...oldTodoList, {text: 'New todo', isComplete: false, id: 1}])}>add</button>
-          </div>
-          <div>
-            <ul>
-              ${this.filteredTodoList?.map(todo => html`<li>${todo.text}</li>`)}
-            </ul>
+            <p>${this.filteredTodos?.length} items</p>
+            <div>
+              <button @click=${() => setFilter('all')}>all</button>
+              <button @click=${() => setFilter('active')}>active</button>
+              <button @click=${() => setFilter('completed')}>completed</button>
+            </div>
           </div>
         `;
       }
     }
 
-    customElements.define('todo-app', TodoList);
+    customElements.define("todo-app", TodoApp);
+
   ```
 
 </wcd-snippet>
