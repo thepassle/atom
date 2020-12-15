@@ -11,6 +11,10 @@ callToActionItems: [{ text: 'get started', href: '/guides/' }]
 
 > Update only relevant bits of state, rerender only what has changed 👌
 
+`@klaxon/atom` is a flexible state manager that makes use of modern web platform features like ES Modules, and EventTarget. The [core](https://github.com/thepassle/atom/blob/master/src/core.js) of `@klaxon/atom` is very small and checks in at about `1.7kb` (compressed). There is currently one integration with `LitElement`, but the core concepts are not restricted to or depending on `LitElement`, feel free to implement your own integration using the core.
+
+This project is heavily inspired by [Recoil](https://recoiljs.org/), but not a 1-1 port.
+
 <div id="graph">
 
 ![illustration of Atoms inner workins](./graph.svg)
