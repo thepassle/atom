@@ -4,6 +4,10 @@
 
 Selectors depend on Atoms, and can be thought of as pieces of _derived_, or _computed_ state. Whenever an Atom has updated, it will notify any Selectors that depend on it, and cause the Selectors `get` function to execute.
 
+The `selector` function takes an object with 2 properties:
+- `key`: a unique key to identify the Selector, this key will also be made available as a property on your custom element to read the Selector value from
+- `get`: a function that executes any time a Selectors dependencies change to return the new value. This function can also be async.
+
 ```js
 import { atom, selector } from '@klaxon/atom';
 
@@ -13,7 +17,7 @@ const [count, setCount] = atom({
 });
 
 const doubleCount = selector({
-  key: 'doubleCount',
+  key: 'doubleCount', // assign a *unique key*
   get: ({getAtom}) => {
     const originalCount = getAtom(count);
     return originalCount * 2;

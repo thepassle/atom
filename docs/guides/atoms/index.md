@@ -4,12 +4,16 @@
 
 Atoms represent small pieces of reusable and shareable state, and maintain their own internal stores. Atoms represent small pieces of reusable state, and maintain their own internal store. Whenever an update is triggered (by calling the setter function of that Atom), the Atoms store dispatches an event. All components (and Selectors) that are subscribed to that Atom will get the event, trigger an update, and cause only the relevant components to update and rerender.
 
+The `atom` function takes an object with 2 properties:
+- `key`: a unique key to identify the Atom, this key will also be made available as a property on your custom element to read the Atom stores value from
+- `default`: a default value
+
 ```js
 import { atom } from '@klaxon/atom';
 
 const [count, setCount] = atom({
-  key: 'count',
-  default: 1
+  key: 'count', // assign the value a *unique key*
+  default: 1 // and the Atom store's default value
 });
 
 console.log(count.getState()); // 1
