@@ -19,7 +19,11 @@ const doubleCount = selector({
     return originalCount * 2;
   }
 });
+
+setCount(3);
 ```
+
+![illustration of a selector updating a component](./graphs-03.svg)
 
 ## Registering Selectors
 
@@ -46,7 +50,8 @@ The `LitAtom` mixin will subscribe to any changes for the `doubleCount` Selector
 Selectors can also depend on other Selectors:
 
 ```js
-import { atom, selector } from '@klaxon/atom';
+import { LitElement, html } from 'lit-element';
+import { LitAtom, atom, selector } from '@klaxon/atom';
 
 const [count, setCount] = atom({
   key: 'count',
@@ -69,15 +74,27 @@ const doubleCountPlusTen = selector({
   }
 });
 
-setCount(2);
+setCount(3);
+
+class MyElement extends LitAtom(LitElement) {
+  static get selectors() {
+    return [doubleCountPlusTen];
+  }
+
+  render() {
+    return html`<p>doublecountPlusTen: ${this.doubleCountPlusTen}</p>`;
+  }
+}
 ```
 
 > Note that `getSelector` is async.
 
 The order of execution here is:
-- The Atoms store is updated to `2`
-- `doubleCount` executes its `get` function and returns `4`
-- `doubleCountPlusTen` executes its `get` function and returns `14`
+- The Atoms store is updated to `3`
+- `doubleCount` executes its `get` function and returns `6`
+- `doubleCountPlusTen` executes its `get` function and returns `16`
+
+![illustration of a nested selector updating a component](./graphs-04.svg)
 
 You can read more about Atom's update scheduling [here](../faq/#update-timing).
 

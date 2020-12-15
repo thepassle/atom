@@ -69,6 +69,8 @@ class MyCounter extends LitAtom(LitElement) {
 
 > Note that it's not required to add `doubleCount` to LitElements static `properties` getter. It's still fine to do however if, for example, you want to access the value during LitElements lifecycle callbacks, like `updated`.
 
+![illustration of an atom updating a component](./graphs-02.svg)
+
 The `LitAtom` mixin will subscribe to any changes for the `num` Atom, and rerender your component. You can access the value of the `num` Atom in your component like so: `this.num` (👈 the `key` value of the Atom).
 
 ## Updating Atoms
@@ -109,6 +111,12 @@ class MyCounter extends LitAtom(LitElement) {
   }
 }
 ```
+
+## Sharing Atoms
+
+Atoms can be shared across many different components, independent from eachother. Any component that subscribes to an Atom will be updated and rerendered as soon as that Atom changes.
+
+![illustration of an atom updating another component](./graphs-05.svg)
 
 ## Effects
 
