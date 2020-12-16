@@ -17,10 +17,8 @@ const selectedCharacter = selector({
 });
 
 class MyApp extends LitAtom(LitElement) {
-  static get selectors() {
-    return [selectedCharacter];
-  }
-
+  static selectors = [selectedCharacter];
+  
   static get properties() {
     return {
       characters: { type: Array }
@@ -32,18 +30,16 @@ class MyApp extends LitAtom(LitElement) {
     this.characters = (await(await fetch('https://swapi.dev/api/people')).json()).results;
   }
 
-  static get styles() {
-    return css`
-      :host {
-        display: flex;
-        flex-direction: row;
-      }
+  static styles = css`
+    :host {
+      display: flex;
+      flex-direction: row;
+    }
 
-      .characters {
-        list-style: none;
-      }
-    `
-  }
+    .characters {
+      list-style: none;
+    }
+  `
 
   render() {
     return html`

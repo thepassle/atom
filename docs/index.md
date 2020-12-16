@@ -87,9 +87,7 @@ You can use Atoms by registering them to a component in the static `atoms` gette
     });
 
     export class MyCounter extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
+      static atoms = [count];
 
       render() {
         return html`
@@ -144,13 +142,8 @@ You can use Atoms by registering them to a component in the static `atoms` gette
     });
 
     class TodoList extends LitAtom(LitElement) {
-      static get atoms() {
-        return [todoListFilter];
-      }
-
-      static get selectors() {
-        return [filteredTodoList];
-      }
+      static atoms = [todoListFilter];
+      static selectors = [filteredTodoList];
 
       render() {
         return html`

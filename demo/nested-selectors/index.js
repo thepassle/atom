@@ -23,13 +23,7 @@ const doubleNumPlusOne = selector({
 });
 
 class MyFoo extends LitAtom(LitElement) {
-  static get atoms() {
-    return [num];
-  }
-  
-  static get selectors() {
-    return [];
-  }
+  static atoms = [num];
 
   render() {
     return html`
@@ -42,9 +36,7 @@ class MyFoo extends LitAtom(LitElement) {
 customElements.define('my-foo', MyFoo);
 
 class MyBar extends LitAtom(LitElement) {
-  static get selectors() {
-    return [doubleNum];
-  }
+  static selectors = [doubleNum];
 
   render() {
     return html`
@@ -56,9 +48,7 @@ class MyBar extends LitAtom(LitElement) {
 customElements.define('my-bar', MyBar);
 
 class MyBaz extends LitAtom(LitElement) {
-  static get selectors() {
-    return [doubleNumPlusOne];
-  }
+  static selectors = [doubleNumPlusOne];
 
   render() {
     return html`

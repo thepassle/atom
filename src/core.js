@@ -37,8 +37,6 @@ export const atoms = new Map();
 /** @type {Map<string, Selector>} */
 export const selectors = new Map();
 
-const loadableState = { status: 'initialized', result: null };
-
 /** @param {Atom} atom */
 const notify = atom => {
   atom.notify();
@@ -71,7 +69,7 @@ export const atom = ({key, default: val, loadable, effects}) => {
     atom.state = typeof val === 'function' ? val() : val;
 
     if(loadable) {
-      atom.state = loadableState;
+      atom.state = { status: 'initialized', result: null };
       atom.loadable = loadable;
     }
 
@@ -90,7 +88,7 @@ export const atom = ({key, default: val, loadable, effects}) => {
   loadable 
     ? (val) => {
         const atom = atoms.get(key);
-        atom.state = { ...loadableState, status: 'loading' };
+        atom.state.status = 'loading';
 
         notify(atom);
         atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];

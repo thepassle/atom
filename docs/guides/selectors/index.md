@@ -29,15 +29,13 @@ setCount(3);
 
 ![illustration of a selector updating a component](./graphs-03.svg)
 
-## Registering Selectors
+## Subscribing to Selectors
 
-You can apply a Selector to your component by adding it to the static `selectors` getter, and using the `LitAtom` Mixin:
+You can subscribe your component to a Selector by adding it to the static `selectors` getter, and using the `LitAtom` Mixin:
 
 ```js
 class MyElement extends LitAtom(LitElement) {
-  static get selectors() {
-    return [doubleCount];
-  }
+  static selectors = [doubleCount];
 
   render() {
     return html`<p>doublecount: ${this.doubleCount}</p>`;
@@ -81,9 +79,7 @@ const doubleCountPlusTen = selector({
 setCount(3);
 
 class MyElement extends LitAtom(LitElement) {
-  static get selectors() {
-    return [doubleCountPlusTen];
-  }
+  static selectors = [doubleCountPlusTen];
 
   render() {
     return html`<p>doublecountPlusTen: ${this.doubleCountPlusTen}</p>`;

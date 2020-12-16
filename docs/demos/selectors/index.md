@@ -25,13 +25,8 @@
     });
 
     export class MyCounter extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
-
-      static get selectors() {
-        return [countPlusOne];
-      }
+      static atoms = [count];
+      static selectors = [countPlusOne];
 
       render() {
         return html`
@@ -79,13 +74,8 @@
     });
 
     export class MyCounter extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
-
-      static get selectors() {
-        return [countPlusOne, countPlusTen];
-      }
+      static atoms = [count];
+      static atoms = [countPlusOne, countPlusTen];
 
       render() {
         return html`
@@ -128,9 +118,7 @@
     });
 
     class MyApp extends LitAtom(LitElement) {
-      static get selectors() {
-        return [selectedPokemon];
-      }
+      static selectors = [selectedPokemon];
 
       static get properties() {
         return {
@@ -143,18 +131,16 @@
         this.pokemon = (await (await fetch('https://pokeapi.co/api/v2/pokemon')).json()).results;
       }
 
-      static get styles() {
-        return css`
-          :host {
-            display: flex;
-            flex-direction: row;
-          }
+      static styles = css`
+        :host {
+          display: flex;
+          flex-direction: row;
+        }
 
-          .pokemon {
-            list-style: none;
-          }
-        `
-      }
+        .pokemon {
+          list-style: none;
+        }
+      `
 
       render() {
         return html`
@@ -225,10 +211,8 @@
     });
 
     class MyApp extends LitAtom(LitElement) {
-      static get selectors() {
-        return [renderStatus];
-      }
-
+      static selectors = [renderStatus];
+      
       connectedCallback() {
         super.connectedCallback();
         setQuery();

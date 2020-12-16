@@ -20,10 +20,8 @@ const sleep = () => new Promise(res => setTimeout(res, 1500));
 })();
 
 class MyApp extends LitAtom(LitElement) {
-  static get atoms() {
-    return [query];
-  }
-
+  static atoms = [query];
+  
   connectedCallback() {
     super.connectedCallback();
     setQuery();

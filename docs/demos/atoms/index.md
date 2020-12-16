@@ -16,9 +16,7 @@
     });
 
     export class MyCounter extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
+      static atoms = [count];
 
       render() {
         return html`
@@ -50,10 +48,7 @@
     });
 
     export class MyCounter extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
-
+      static atoms = [count];
       static styles = css`:host{display: block;}`
 
       render() {
@@ -69,10 +64,7 @@
 
 
     class SharedAtom extends LitAtom(LitElement) {
-      static get atoms() {
-        return [count];
-      }
-
+      static atoms = [count];
       static styles = css`:host{display: block;}`
 
       render() {
@@ -114,9 +106,7 @@
     })();
 
     class MyApp extends LitAtom(LitElement) {
-      static get atoms() {
-        return [query];
-      }
+      static atoms = [query];
 
       connectedCallback() {
         super.connectedCallback();

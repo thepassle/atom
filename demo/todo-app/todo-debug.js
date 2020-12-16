@@ -19,34 +19,27 @@ const addTodo = () => {
 };
 
 class TodoDebug extends LitAtom(LitElement) {
-  static get styles() {
-    return css`
-      :host {
-        flex: 1;
-        padding: 20px;
-        max-width: 33%;
-        word-break: break-word;
-      }
+  static styles = css`
+    :host {
+      flex: 1;
+      padding: 20px;
+      max-width: 33%;
+      word-break: break-word;
+    }
 
-      pre {
-        white-space: pre-wrap;
-        padding: 10px;
-        border-radius: 5px;
-      }
+    pre {
+      white-space: pre-wrap;
+      padding: 10px;
+      border-radius: 5px;
+    }
 
-      .selected {
-        background-color: rgb(232, 249, 255);
-      }
-    `
-  }
+    .selected {
+      background-color: rgb(232, 249, 255);
+    }
+  `
 
-  static get atoms() {
-    return [selected];
-  }
-
-  static get selectors(){
-    return [todosList];
-  }
+  static atoms = [selected];
+  static selectors = [todosList];
 
   render() {
     return html`

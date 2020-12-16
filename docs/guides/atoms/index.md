@@ -51,15 +51,13 @@ console.log(obj.getState()); // {text: 'hello!', age: 30}
 
 Etcetera.
 
-## Registering Atoms
+## Subscribing to Atoms
 
-You can apply an Atom to your component by adding it to the static `atoms` getter, and using the `LitAtom` Mixin:
+You can subscribe components to an Atom by adding it to the static `atoms` getter, and using the `LitAtom` Mixin:
 
 ```js
 class MyCounter extends LitAtom(LitElement) {
-  static get atoms() {
-    return [count];
-  }
+  static atoms = [count];
 
   render() {
     return html`
@@ -102,9 +100,7 @@ If you're using the `LitAtom` Mixin, you can also call `this.updateAtom`. `updat
 
 ```js
 class MyCounter extends LitAtom(LitElement) {
-  static get atoms() {
-    return [count];
-  }
+  static atoms = [count];
 
   render() {
     return html`
@@ -240,9 +236,7 @@ const [query, setQuery] = atom({
 });
 
 class MyApp extends LitAtom(LitElement) {
-  static get atoms() {
-    return [query];
-  }
+  static atoms = [query];
 
   connectedCallback() {
     super.connectedCallback();
@@ -306,10 +300,8 @@ const renderStatus = selector({
 });
 
 class MyApp extends LitAtom(LitElement) {
-  static get selectors() {
-    return [renderStatus];
-  }
-
+  static selectors = [renderStatus];
+  
   connectedCallback() {
     super.connectedCallback();
     setQuery();

@@ -116,13 +116,8 @@ const doubleNumPlusOne = selector({
 });
 
 class MyApp extends LitAtom(LitElement) {
-  static get atoms() {
-    return [num];
-  }
-  
-  static get selectors() {
-    return [doubleNum, doubleNumPlusOne];
-  }
+  static atoms = [num];
+  static selectors = [doubleNum, doubleNumPlusOne];
 
   render() {
     return html`

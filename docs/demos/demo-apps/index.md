@@ -106,14 +106,6 @@
     import './todo-detail.js';
 
     class TodoApp extends LitElement {
-      static get styles() {
-        return css`
-          :host {
-            height: 100vw;
-            display: flex;
-          }
-        `
-      }
       render() {
         return html`
           <todo-debug></todo-debug>
