@@ -37,7 +37,7 @@ export const atoms = new Map();
 /** @type {Map<string, Selector>} */
 export const selectors = new Map();
 
-const loadableState = { status: 'initialized', result: {}};
+const loadableState = { status: 'initialized', result: null };
 
 /** @param {Atom} atom */
 const notify = atom => {

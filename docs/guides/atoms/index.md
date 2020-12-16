@@ -209,7 +209,7 @@ This Atoms store will be an object that looks like this:
 ```js
 {
   status: "initialized",
-  result: {}
+  result: null
 }
 ```
 
