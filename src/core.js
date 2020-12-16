@@ -58,7 +58,7 @@ export const updateAtom = (atom, val) => {
 
 /**
  * @param {atomOptions} atomOptions 
- * @returns {[atom, (val: any) => void | ((val: any) => Promise<any>)]}
+ * @returns {[atom, (val?: any) => void | ((val?: any) => Promise<any>)]}
  */
 export const atom = ({key, default: val, loadable, effects}) => {
   if(!atoms.has(key)) {

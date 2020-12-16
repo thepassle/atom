@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "wds --watch --node-resolve",
+    "test": "wtr test/**/*.test.js --node-resolve",
+    "test:watch": "wtr test/**/*.test.js --node-resolve --watch",
     "docs:start": "rocket start",
     "docs:build": "rocket build"
   },
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@d4kmor/cli": "^0.11.0",
     "@d4kmor/launch": "^0.10.0",
+    "@open-wc/testing": "^2.5.32",
     "@web/dev-server": "0.0.28",
     "@web/test-runner": "^0.10.1",
     "hanbi": "^0.4.1",
