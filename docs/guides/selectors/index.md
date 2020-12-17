@@ -108,7 +108,7 @@ If no components are currently registered to a Selector, the Selector will becom
 const userProfile = selector({
   key: 'userProfile',
   get: async ({getAtom}) => {
-    const id = getatom(userId);
+    const id = getAtom(userId);
     const res = await fetch(`/api/${id}`);
     const body = await res.json();
     return body.profile;
@@ -129,7 +129,7 @@ If you have Selectors depending on a Selector that may have become inactive, the
 const userProfile = selector({
   key: 'userProfile',
   get: async ({getAtom}) => {
-    const id = getatom(userId);
+    const id = getAtom(userId);
     const res = await fetch(`/api/${id}`);
     const body = await res.json();
     return body.profile;

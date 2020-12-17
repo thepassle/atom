@@ -292,7 +292,7 @@ const renderStatus = selector({
         return html`Success! ${result.name}`
       case 'error':
         return html`error! :(`
-      case 'initiliazed':
+      case 'initialized':
       case 'pending':
         return html`Loading...`
     }
