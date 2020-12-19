@@ -21,13 +21,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
       const { key } = await selector;
       const currSelector = selectors.get(key);
       currSelector.addEventListener(key, this.__selectorUpdate);
-      if(currSelector.active === 0) {
-        this[key] = await currSelector.get();
-      } else {
-        this[key] = currSelector.value;
-      }
-      currSelector.active = currSelector.active+1;
-
+      this[key] = currSelector.value;
     });
 
     this.scheduleUpdate();
@@ -43,7 +37,6 @@ export const LitAtom = (klass) => class LitAtom extends klass {
     this.constructor.selectors?.forEach(async (selector) => {
       const { key } = await selector;
       const currSelector = selectors.get(key);
-      currSelector.active = currSelector.active-1;
       currSelector.removeEventListener(key, this.__selectorUpdate);
     });
     super.disconnectedCallback?.();

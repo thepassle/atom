@@ -5,6 +5,13 @@ import './todo-list.js';
 import './todo-detail.js';
 
 class TodoApp extends LitAtom(LitElement) {
+  static styles = css`
+    :host {
+      height: 100vw;
+      display: flex;
+    }
+  `
+
   render() {
     return html`
       <todo-debug></todo-debug>

@@ -29,6 +29,8 @@ setCount(3);
 
 ![illustration of a selector updating a component](./graphs-03.svg)
 
+> Note that Selectors update when its corresponding Atom has changed, even if no components are currently subscribed to that Selector.
+
 ## Subscribing to Selectors
 
 You can subscribe your component to a Selector by adding it to the static `selectors` getter, and using the `LitAtom` Mixin:
@@ -97,53 +99,3 @@ The order of execution here is:
 ![illustration of a nested selector updating a component](./graphs-04.svg)
 
 You can read more about Atom's update scheduling [here](../faq/#update-timing).
-
-## Inactive Selectors
-
-It could be the case that you have dynamic components in your app, or maybe you have a Single Page Application (SPA) where different views are loaded dynamically. It would be wasteful if Selectors would still execute while no component currently makes use of a Selector, because you may be in a completely different part of the application.
-
-If no components are currently registered to a Selector, the Selector will become _inactive_, and will avoid updating. Consider the following example:
-
-```js
-const userProfile = selector({
-  key: 'userProfile',
-  get: async ({getAtom}) => {
-    const id = getAtom(userId);
-    const res = await fetch(`/api/${id}`);
-    const body = await res.json();
-    return body.profile;
-  }
-});
-```
-
-If no component makes use of the `userProfile` Selector, we may still want to update the `userId` Atom. But in this case, it would be wasteful to still run the `userProfile` Selectors `get` function, if no component is making use of it. If this is the case, no component makes use of the `userProfile` Selector, the Selector will avoid updating.
-
-Whenever a component is rendered that makes use of the `userProfile` Selector again, it'll execute the Selectors `get` function and update according to the latest state of the `userId` Atom.
-
-### Selectors depending on inactive Selectors
-
-If you have Selectors depending on a Selector that may have become inactive, the inactive's Selector _will_ still run. Consider the following example:
-
-```js
-// No component is currently subscribed to this Selector
-const userProfile = selector({
-  key: 'userProfile',
-  get: async ({getAtom}) => {
-    const id = getAtom(userId);
-    const res = await fetch(`/api/${id}`);
-    const body = await res.json();
-    return body.profile;
-  }
-});
-
-// A component *is* currently subscribe to this Selector
-const userFullName = selector({
-  key: 'userFullName',
-  get: async ({getSelector}) => {
-    const { firstName, lastName } = await getSelector(userProfile);
-    return `${firstName} ${lastName}`;
-  }
-});
-```
-
-In this case, the inactive `userProfile` Selector will still execute; because it has another Selector that depends on it.

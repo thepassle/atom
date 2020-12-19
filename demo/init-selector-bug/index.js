@@ -9,12 +9,21 @@ const [count, setCount] = atom({
 const doubleCount = selector({
   key: 'doubleCount',
   get: ({getAtom}) => {
+    console.log('### 👍 [DOUBLE]')
     const ogCount = getAtom(count);
-    console.log('ogCount:', ogCount);
     return ogCount * 2;
   }
-})
-debugger;
+});
+
+const doubleCountPlusTen = selector({
+  key: 'doubleCountPlusTen',
+  get: async ({getSelector}) => {
+    console.log('### 👍 [PLUS TEN]')
+    const double = await getSelector(doubleCount);
+    return double + 10;
+  }
+});
+
 export class MyApp extends LitElement {
   render() {
     return html`
@@ -26,7 +35,7 @@ export class MyApp extends LitElement {
 customElements.define('my-app', MyApp)
 
 export class MyAtom extends LitAtom(LitElement) {
-  // static atoms = [count];
+  static atoms = [count];
 
   render() {
     return html`
@@ -38,12 +47,14 @@ export class MyAtom extends LitAtom(LitElement) {
 customElements.define("my-atom", MyAtom);
 
 export class MySelector extends LitAtom(LitElement) {
-  static selectors = [doubleCount];
+  static selectors = [doubleCountPlusTen];
 
   render() {
-    console.log('doubleCount:', this.doubleCount);
     return html`
-      doubleCount: ${this.doubleCount}
+    <div>
+      doubleCountPlusTen: ${this.doubleCountPlusTen}
+    </div>
+    <button @click=${()=>{setCount(old => old + 1)}}>click</button>
     `;
   }
 }

@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Discover",
+    "children": [
+      {
+        "text": "Help and Feedback",
+        "href": "https://github.com/thepassle/atom/issues"
+      }
+    ]
+  },
+  {
+    "name": "Follow",
+    "children": [
+      {
+        "text": "Github",
+        "href": "https://github.com/thepassle/atom"
+      },
+      {
+        "text": "Twitter",
+        "href": "https://twitter.com/thepassle"
+      }
+    ]
+  },
+  {
+    "name": "Support",
+    "children": [
+      {
+        "text": "Contribute",
+        "href": "https://github.com/thepassle/atom"
+      }
+    ]
+  }
+]

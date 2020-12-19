@@ -116,9 +116,7 @@ export const selector = async ({key, get}) => {
      * If there are more than 0 components subscribed to a Selector, execute its `get` fn
      * If there are no components subscribed to a Selector, avoid updating its value
      */
-    if(selector.active > 0) {
-      selector.value = await selector.get();
-    }
+    selector.value = await selector.get();
     selector.notify();
   }
 
@@ -142,17 +140,10 @@ export const selector = async ({key, get}) => {
     const { key: parentKey } = await parentSelector;
     const parent = selectors.get(parentKey);
     parent.addEventListener(parentKey, updateSelectorVal);
-    
-    let value;
-    if(parent.active === 0) {
-      value = await parent.get();
-    } else {
-      value = parent.value;
-    }
   
     parents.add(parentKey);
     parent.children.add(key);
-    return value;
+    return parent.value;
   }
   
   const createGet = ({getAtom, getSelector}) => async () => get({getAtom, getSelector});

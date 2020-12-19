@@ -22,7 +22,6 @@ export class Atom extends Store {
 export class Selector extends Store {
   value;
   get;
-  active = null;
   // Selectors can also be dependent on Atoms and other Selectors
   parents = new Set();
 }
