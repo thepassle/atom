@@ -9,6 +9,8 @@ callToActionItems: [{ text: 'get started', href: '/guides/' }]
 
 ## Quickstart 👇
 
+![source code](./size.png)
+
 `@klaxon/atom` is a flexible state manager that makes use of modern web platform features like ES Modules, and EventTarget. The [core](https://github.com/thepassle/atom/blob/master/src/core.js) of `@klaxon/atom` is very small and checks in at about `1.6kb` (compressed). There is currently one integration with `LitElement`, but the core concepts are not restricted to or depending on `LitElement`, feel free to implement your own integration using the core.
 
 You can start using `@klaxon/atom` incrementally in your apps as you require shared state, or even combine it with other state managers.
