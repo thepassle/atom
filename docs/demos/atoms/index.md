@@ -34,6 +34,50 @@
 
 </wcd-snippet>
 
+## Reducer Atom
+
+<wcd-snippet data-id="gM7Qi6cK9EeAb6UjbJ4J">
+
+  ```js
+    import { LitElement, html, css } from "lit-element";
+    import { LitAtom, atom } from "@klaxon/atom";
+
+    const [count, setCount] = atom({
+      key: 'count',
+      default: 0
+    });
+
+    const dispatch = (action) => {
+      setState(state => {
+        switch (action.type) {
+          case 'increment':
+            return {count: state.count + 1};
+          case 'decrement':
+            return {count: state.count + -1};
+          default:
+            return state;
+        }
+      });
+    }
+
+    class MyCounter extends LitAtom(LitElement) {
+      static atoms = [count];
+      static styles = css`:host{display: block;}`
+
+      render() {
+        return html`
+          <button @click="${() => dispatch({type: 'decrement'})}">-</button>
+          <span>${this.count}</span>
+          <button @click="${() => dispatch({type: 'increment'})}">+</button>
+        `;
+      }
+    }
+
+    customElements.define("my-counter", MyCounter);
+  ```
+
+</wcd-snippet>
+
 ## Shared Atom
 
 <wcd-snippet data-id="YLH6g2tIsdpNxDZm9ful">
@@ -47,7 +91,7 @@
       default: 0
     });
 
-    export class MyCounter extends LitAtom(LitElement) {
+    class MyCounter extends LitAtom(LitElement) {
       static atoms = [count];
       static styles = css`:host{display: block;}`
 
