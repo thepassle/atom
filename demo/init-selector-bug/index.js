@@ -26,18 +26,31 @@ const [state, setState] = atom({
   default: {count: 0}
 });
 
+// const dispatch = (action) => {
+//   switch (action.type) {
+//     case 'increment':
+//       setState(state => ({count: state.count + 1}));
+//       break;
+//     case 'decrement':
+//       setState(state => ({count: state.count - 1}));
+//       break;
+//     default:
+//       throw new Error();
+//   }
+// };
+
 const dispatch = (action) => {
-  switch (action.type) {
-    case 'increment':
-      setState(state => ({count: state.count + 1}));
-      break;
-    case 'decrement':
-      setState(state => ({count: state.count - 1}));
-      break;
-    default:
-      throw new Error();
-  }
-};
+  setState(state => {
+    switch (action.type) {
+      case 'increment':
+        return {count: state.count + 1};
+      case 'decrement':
+        return {count: state.count + -1};
+      default:
+        return state;
+    }
+  });
+}
 
 
 // const doubleCount = selector({

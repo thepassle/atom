@@ -141,7 +141,7 @@ const [count, setCount] = atom({
 
 ## Reducers
 
-If you're interested in a reducer-like pattern, its easy to create your own:
+If you're interested in a reducer-like pattern, its easy to create your own dispatch functionality by wrapping an atoms update function:
 
 ```js
 const [state, setState] = atom({
@@ -150,17 +150,17 @@ const [state, setState] = atom({
 });
 
 const dispatch = (action) => {
-  switch (action.type) {
-    case 'increment':
-      setState(state => ({count: state.count + 1}));
-      break;
-    case 'decrement':
-      setState(state => ({count: state.count - 1}));
-      break;
-    default:
-      throw new Error();
-  }
-};
+  setState(state => {
+    switch (action.type) {
+      case 'increment':
+        return {count: state.count + 1};
+      case 'decrement':
+        return {count: state.count + -1};
+      default:
+        return state;
+    }
+  });
+}
 
 dispatch({type: 'increment'});
 ```
