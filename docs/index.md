@@ -80,27 +80,27 @@ You can use Atoms by registering them to a component in the static `atoms` gette
 <wcd-snippet class="landing-page" data-id="4jOEMPDsdljAVmAmoQSJ">
 
   ```js
-    import { LitElement, html } from "lit-element";
-    import { LitAtom, atom } from "@klaxon/atom";
+  import { LitElement, html } from "lit-element";
+  import { LitAtom, atom } from "@klaxon/atom";
 
-    const [count, setCount] = atom({
-      key: 'count',
-      default: 0
-    });
+  const [count, setCount] = atom({
+    key: 'count',
+    default: 0
+  });
 
-    export class MyCounter extends LitAtom(LitElement) {
-      static atoms = [count];
+  export class MyCounter extends LitAtom(LitElement) {
+    static atoms = [count];
 
-      render() {
-        return html`
-          <button @click="${() => setCount(old => old - 1)}">-</button>
-          <span>${this.count}</span>
-          <button @click="${() => setCount(old => old + 1)}">+</button>
-        `;
-      }
+    render() {
+      return html`
+        <button @click="${() => setCount(old => old - 1)}">-</button>
+        <span>${this.count}</span>
+        <button @click="${() => setCount(old => old + 1)}">+</button>
+      `;
     }
+  }
 
-    customElements.define("my-counter", MyCounter);
+  customElements.define("my-counter", MyCounter);
   ```
 
 </wcd-snippet>
@@ -110,65 +110,65 @@ You can use Atoms by registering them to a component in the static `atoms` gette
 <wcd-snippet class="landing-page" data-id="e530K7dhKDxqpoocCOu5">
 
   ```js
-    import { LitElement, html } from 'lit-element';
-    import { LitAtom, atom, selector } from '@klaxon/atom';
+  import { LitElement, html } from 'lit-element';
+  import { LitAtom, atom, selector } from '@klaxon/atom';
 
-    export const [todoListFilter, setTodoListFilter] = atom({
-      key: 'todoListFilter',
-      default: 'Show All',
-    });
+  export const [todoListFilter, setTodoListFilter] = atom({
+    key: 'todoListFilter',
+    default: 'Show All',
+  });
 
-    export const [todoList, setTodoList] = atom({
-      key: 'todoList',
-      default: [
-        {text: 'not done', isComplete: false, id: 0},
-        {text: 'done', isComplete: true, id: 1},
-      ]
-    });
+  export const [todoList, setTodoList] = atom({
+    key: 'todoList',
+    default: [
+      {text: 'not done', isComplete: false, id: 0},
+      {text: 'done', isComplete: true, id: 1},
+    ]
+  });
 
-    const filteredTodoList = selector({
-      key: 'filteredTodoList',
-      get: ({getAtom}) => {
-        const filter = getAtom(todoListFilter);
-        const list = getAtom(todoList);
+  const filteredTodoList = selector({
+    key: 'filteredTodoList',
+    get: ({getAtom}) => {
+      const filter = getAtom(todoListFilter);
+      const list = getAtom(todoList);
 
-        switch (filter) {
-          case 'Show Completed':
-            return list.filter((item) => item.isComplete);
-          case 'Show Uncompleted':
-            return list.filter((item) => !item.isComplete);
-          default:
-            return list;
-        }
-      },
-    });
-
-    class TodoList extends LitAtom(LitElement) {
-      static atoms = [todoListFilter];
-      static selectors = [filteredTodoList];
-
-      render() {
-        return html`
-          <div>
-            <h1>${this.todoListFilter}</h1>
-            <button @click=${() => setTodoListFilter("Show All")}>show all</button>
-            <button @click=${() => setTodoListFilter("Show Completed")}>show completed</button>
-            <button @click=${() => setTodoListFilter("Show Uncompleted")}>show uncompleted</button>
-          </div>
-          <br/>
-          <div>
-            <button @click=${() => setTodoList((oldTodoList) => [...oldTodoList, {text: 'New todo', isComplete: false, id: 1}])}>add</button>
-          </div>
-          <div>
-            <ul>
-              ${this.filteredTodoList?.map(todo => html`<li>${todo.text}</li>`)}
-            </ul>
-          </div>
-        `;
+      switch (filter) {
+        case 'Show Completed':
+          return list.filter((item) => item.isComplete);
+        case 'Show Uncompleted':
+          return list.filter((item) => !item.isComplete);
+        default:
+          return list;
       }
-    }
+    },
+  });
 
-    customElements.define('todo-app', TodoList);
+  class TodoList extends LitAtom(LitElement) {
+    static atoms = [todoListFilter];
+    static selectors = [filteredTodoList];
+
+    render() {
+      return html`
+        <div>
+          <h1>${this.todoListFilter}</h1>
+          <button @click=${() => setTodoListFilter("Show All")}>show all</button>
+          <button @click=${() => setTodoListFilter("Show Completed")}>show completed</button>
+          <button @click=${() => setTodoListFilter("Show Uncompleted")}>show uncompleted</button>
+        </div>
+        <br/>
+        <div>
+          <button @click=${() => setTodoList((oldTodoList) => [...oldTodoList, {text: 'New todo', isComplete: false, id: 1}])}>add</button>
+        </div>
+        <div>
+          <ul>
+            ${this.filteredTodoList?.map(todo => html`<li>${todo.text}</li>`)}
+          </ul>
+        </div>
+      `;
+    }
+  }
+
+  customElements.define('todo-app', TodoList);
   ```
 
 </wcd-snippet>
