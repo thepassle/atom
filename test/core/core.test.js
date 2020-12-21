@@ -148,24 +148,4 @@ describe('selectors', async () => {
     await nextFrame();
     expect(selectors.get('doubleCount').value).to.equal(4);
   });
-
-  it('doesnt update if selector is not active', async () => {
-    const [count, setCount] = atom({
-      key: 'count2',
-      default: 1
-    });
-
-    const doubleCount = await selector({
-      key: 'doubleCount2',
-      get: ({getAtom}) => {
-        const ogCount = getAtom(count);
-        return ogCount * 2;
-      }
-    });
-
-    expect(selectors.get('doubleCount2').value).to.equal(2);
-    setCount(2);
-    await nextFrame();
-    expect(selectors.get('doubleCount2').value).to.equal(2);
-  });
 });

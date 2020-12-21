@@ -65,6 +65,10 @@ describe('lit', () => {
     }
     customElements.define('multiple-selector', MultipleSelector);
 
+    beforeEach(() => {
+      setCount(1);
+    });
+
     it('initializes correctly', async () => {
       const el = await fixture('<basic-selector></basic-selector>');
       expect(el.doubleCount).to.equal(2);
