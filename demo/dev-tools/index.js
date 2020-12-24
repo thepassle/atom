@@ -71,7 +71,7 @@ const [loadable, initLoadable] = atom({
   key: 'loadable',
   loadable: async () => {
     await new Promise(res => setTimeout(res, 1500));
-    return "loadable done";
+    return "loadable done! 🎉";
   }
 })
 
@@ -124,6 +124,15 @@ class Test extends LitAtom(LitElement) {
       <br>
       <br>
       <div>loadable: ${JSON.stringify(this.loadable, null, 2)}</div>
+      ${this.loadable.status === 'loading'
+        ? html`<img width=40 src="https://i.giphy.com/media/sSgvbe1m3n93G/giphy.webp"/>`
+        : ''
+      }
+      ${this.loadable.status === 'success'
+        ? html`${this.loadable.result}`
+        : ''
+      }
+      
       <br>
       <br>
     `
