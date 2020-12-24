@@ -1,0 +1,31 @@
+{
+  "name": "Atom Devtools",
+  "short_name": "Atom Devtools",
+  "version": "1.0",
+  "description": "",
+  "author": "Pascal Schilp",
+  "devtools_page": "index.html",
+  "permissions": [
+    "debugger",
+    "storage",
+    "activeTab",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "content_script.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png"
+  }
+}

@@ -8,7 +8,9 @@
     "test": "wtr test/**/*.test.js --node-resolve",
     "test:watch": "wtr test/**/*.test.js --node-resolve --watch",
     "docs:start": "rocket start",
-    "docs:build": "rocket build"
+    "docs:build": "rocket build",
+    "devtools:build": "rimraf dist && rollup -c rollup.config.js",
+    "devtools:build:watch": "rimraf dist && rollup -c --watch rollup.config.js"
   },
   "keywords": [],
   "author": "",
@@ -16,10 +18,16 @@
   "devDependencies": {
     "@d4kmor/cli": "^0.11.0",
     "@d4kmor/launch": "^0.10.0",
+    "@open-wc/rollup-plugin-html": "^1.2.5",
     "@open-wc/testing": "^2.5.32",
     "@web/dev-server": "0.0.28",
     "@web/test-runner": "^0.10.1",
     "hanbi": "^0.4.1",
-    "lit-element": "^2.4.0"
+    "lit-element": "^2.4.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.35.1",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-index-html": "^1.12.8",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }

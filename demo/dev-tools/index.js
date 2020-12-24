@@ -1,42 +1,46 @@
 import { LitElement, html, css } from "lit-element";
 import { LitAtom, atom, selector } from "../../index.js";
+import { Atom, Selector } from "../../src/Store.js";
 import { atoms, selectors } from '../../src/core.js';
 
-console.log(atoms);
+function registerDevtools() {
+  window.__atoms = atoms;
+  window.__selectors = selectors;
+  
+  const oldNotify = Atom.prototype.notify;
+  Atom.prototype.notify = function() {
+    document.dispatchEvent(new CustomEvent('__ATOM', {
+      detail: {
+        key: this.key,
+        state: this.state
+      }
+    }));
+    oldNotify.call(this);
+  };
+  
+  requestIdleCallback(() => {
+    const allAtoms = {};
+    atoms.forEach((val, key) => {
+      allAtoms[key] = val.state;
+    });
+  
+    document.dispatchEvent(new CustomEvent('__ATOM_INIT', {
+      detail: allAtoms
+    }));
+  });
+}
 
-const oldDispatch = EventTarget.prototype.dispatchEvent;
-
-// Maybe just setting `atoms` and `selectors` on the window is enough?
-
-// https://github.com/open-wc/locator/blob/master/src/scripts/content_script.js
-
-// Intercept dispatchEvent so we can notify the extension of statechanges
-EventTarget.prototype.dispatchEvent = function(event) {
-  // the state is update before we `notify` and `dispatchEvent`, so in here we only have access to the latest state
-
-  // This could also be a Selector btw
-  console.log('before', atoms.get(event.type).state);
-  // - send message to extension with the atom/selector
-  // - in the extension, log it in an array of history for that atom
-  // - For timetravel: from the extension, we have to be able to send a message back to the page, get the relevant Atom from the `atoms` Map
-  // and update its state and notify
-  oldDispatch.call(this, event);
-
-  // I think native `dispatchEvent` returns a boolean (I think its `preventDefault`?) should make sure I dont break that
-};
-
-requestIdleCallback(() => {
-  // use the `atoms` and `selectors` Map to be able to list initial states of Atoms
-  // send it to the extension somehow
-  // Probably inject a content script that listens for a "__atom_init" event
-  // and then in the content script chrome.runtime.sendMessage({}, () =>{})
-  console.log(atoms);
-});
+registerDevtools();
 
 
 const [count, setCount] = atom({
   key: 'count',
   default: 0,
+});
+
+const [obj, setObj] = atom({
+  key: 'obj',
+  default: {state: 0},
 });
 
 // const doubleCount = selector({
@@ -49,7 +53,26 @@ const [count, setCount] = atom({
 
 // console.log(atoms);
 
-// setCount(1);
+setCount(1);
 // setCount(2);
 
 // console.log(selectors);
+
+class Test extends LitAtom(LitElement) {
+  static atoms = [count, obj];
+
+  render() {
+    return html`
+      <button @click=${() => {setCount(old => old + 1)}}>click</button>
+      <div>count: ${this.count}</div>
+      <br>
+      <br>
+      <button @click=${() => {setObj(old => ({state: old.state + 1}))}}>click</button>  
+      <div>obj: ${JSON.stringify(this.obj, null, 2)}</div>
+      <br>
+      <br>
+    `
+  }
+}
+
+customElements.define('my-test', Test);
