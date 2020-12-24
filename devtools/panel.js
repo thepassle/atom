@@ -106,6 +106,25 @@ class AtomDevtools extends LitElement {
       font-size: 12px;
       background: #36393e;
       border-radius: 4px;
+      border: solid 2px #36393e;
+    }
+
+    .replay {
+      color: #61afef;
+      padding: 5px 10px;
+      font-size: 12px;
+      background: #36393e;
+      border-radius: 4px;
+      margin-left: 5px;
+      border: solid 2px #36393e;
+      text-transform: uppercase;
+    }
+
+    .replay:hover,
+    .replay:active,
+    .replay:focus {
+      border: solid 2px #61afef;
+      cursor: pointer;
     }
 
     ul {
@@ -176,8 +195,8 @@ class AtomDevtools extends LitElement {
                 ${this.atoms[this.activeAtom].map(({state, time}) => html`
                   <li class="history-li">
                     <span>${time}</span>
+                    <button class="replay" @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
                     <pre>${JSON.stringify(state, null, 2)}</pre>
-                    <button @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
                   </li>
                 `)}
               </ul>

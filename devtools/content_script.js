@@ -8,7 +8,7 @@ requestIdleCallback(() => {
       console.log(e);
       const atom = window.__atoms.get(e.detail.key);
       atom.state = e.detail.state;
-      atom.notify();
+      atom.notify(false);
     });
   `;
   document.body.append(s);

@@ -8,13 +8,15 @@ function registerDevtools() {
   window.__selectors = selectors;
   
   const oldNotify = Atom.prototype.notify;
-  Atom.prototype.notify = function() {
-    document.dispatchEvent(new CustomEvent('__ATOM', {
-      detail: {
-        key: this.key,
-        state: this.state
-      }
-    }));
+  Atom.prototype.notify = function(dispatch = true) {
+    if(dispatch) {
+      document.dispatchEvent(new CustomEvent('__ATOM', {
+        detail: {
+          key: this.key,
+          state: this.state
+        }
+      }));
+    }
     oldNotify.call(this);
   };
   
@@ -43,6 +45,14 @@ const [obj, setObj] = atom({
   default: {state: 0},
 });
 
+const [loadable, initLoadable] = atom({
+  key: 'loadable',
+  loadable: async () => {
+    await new Promise(res => setTimeout(res, 1500));
+    return "loadable done";
+  }
+})
+
 // const doubleCount = selector({
 //   key: 'doubleCount',
 //   get: ({getAtom}) => {
@@ -59,7 +69,12 @@ setCount(1);
 // console.log(selectors);
 
 class Test extends LitAtom(LitElement) {
-  static atoms = [count, obj];
+  static atoms = [count, obj, loadable];
+
+  connectedCallback() {
+    super.connectedCallback();
+    initLoadable();
+  }
 
   render() {
     return html`
@@ -69,6 +84,9 @@ class Test extends LitAtom(LitElement) {
       <br>
       <button @click=${() => {setObj(old => ({state: old.state + 1}))}}>click</button>  
       <div>obj: ${JSON.stringify(this.obj, null, 2)}</div>
+      <br>
+      <br>
+      <div>loadable: ${JSON.stringify(this.loadable, null, 2)}</div>
       <br>
       <br>
     `
