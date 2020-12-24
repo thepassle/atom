@@ -47,7 +47,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
     const store = atoms.get(key);
 
     this[key] = store.state;
-    console.log('[ATOM]', key, this[key])
+    // console.log('[ATOM]', key, this[key])
     this.scheduleUpdate();
   }
 
@@ -56,7 +56,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
     const selector = selectors.get(key);
 
     this[key] = selector.value;
-    console.log('[SELECTOR]', key, this[key]);
+    // console.log('[SELECTOR]', key, this[key]);
     this.scheduleUpdate();
   }
 
@@ -78,7 +78,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
         await this.requestUpdate();
         this.__resolve();
         this.litAtomUpdateComplete = this.__createDeferredPromise();
-        console.log(`✅ [UPDATED] <${this.localName}>`);
+        // console.log(`✅ [UPDATED] <${this.localName}>`);
       });
     }
   }

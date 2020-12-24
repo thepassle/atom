@@ -2529,7 +2529,9 @@ LitElement.render = render$1;
 class AtomDevtools extends LitElement {
   static properties = {
     atoms: { type: Object },
-    activeAtom: { type: Object }
+    selectors: { type: Object },
+    activeAtom: { type: Object },
+    activeSelector: { type: Object },
   }
   static styles = css`
     :host {
@@ -2662,7 +2664,9 @@ class AtomDevtools extends LitElement {
   constructor() {
     super();
     this.atoms = {};
+    this.selectors = {};
     this.activeAtom = null;
+    this.activeSelector = null;
   }
 
   connectedCallback() {
@@ -2671,27 +2675,50 @@ class AtomDevtools extends LitElement {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, {msg: "get_latest"},
       ({data}) => {
-        this.atoms = data;
-        console.log('$$$$', {atoms: this.atoms, data});
+        this.atoms = data.atoms;
+        this.selectors = data.selectors;
       });
     });
 
     chrome.runtime.onMessage.addListener(({msg, data}, _, sendResponse) => {
+
       if(msg === 'atomupdated') {
-        console.log('####', data);
         this.atoms = data;
         this.requestUpdate();
       }
+      
+      if(msg === 'selectorupdated') {
+        this.selectors = data;
+        this.requestUpdate();
+      }
+    });
+
+    chrome.tabs.onUpdated.addListener(() => {
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {msg: "get_latest"},
+        ({data}) => {
+          this.atoms = data.atoms;
+          this.selectors = data.selectors;
+        });
+      });
     });
   }
 
   executeOnPage(key, state) {
-    console.log({key, state});
-    
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, {msg: "replay_atom", data: {key, state}},
       () => {});
     });
+  }
+
+  setActive(type, key) {
+    if(type === 'atom') {
+      this.activeAtom = key;
+      this.activeSelector = null;
+    } else {
+      this.activeSelector = key;
+      this.activeAtom = null;
+    }
   }
 
   render() {
@@ -2705,31 +2732,58 @@ class AtomDevtools extends LitElement {
           <ul>
             ${Object.keys(this.atoms).map(atom => html`
               <li>
-                <button class="${this.activeAtom === atom ? "active" : ""}" @click=${() => {this.activeAtom = atom;}}>${atom}</button>
+                <button class="${this.activeAtom === atom ? "active" : ""}" @click=${() => this.setActive('atom', atom)}>${atom}</button>
+              </li>
+            `)}
+          </ul>
+          <h2>SELECTORS</h2>
+          <ul>
+            ${Object.keys(this.selectors).map(selector => html`
+              <li>
+                <button class="${this.activeSelector === selector ? "active" : ""}" @click=${() => this.setActive('selector', selector)}>${selector}</button>
               </li>
             `)}
           </ul>
         </div>
-        <div class="atom-overview">
-          ${this.activeAtom
+        ${this.activeAtom
             ? html`
-              <h2>${this.activeAtom}</h2>
-              <h3>State:</h3>
-              <pre class="state">${JSON.stringify(this.atoms[this.activeAtom].reverse()[0].state, null, 2)}</pre>
-              <h3 class="history">History:</h3>
-              <ul>
-                ${this.atoms[this.activeAtom].map(({state, time}) => html`
-                  <li class="history-li">
-                    <span>${time}</span>
-                    <button class="replay" @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
-                    <pre>${JSON.stringify(state, null, 2)}</pre>
-                  </li>
-                `)}
-              </ul>
+              <div class="atom-overview">
+                <h2>${this.activeAtom}</h2>
+                <h3>State:</h3>
+                <pre class="state">${JSON.stringify(this.atoms[this.activeAtom][0].state, null, 2)}</pre>
+                <h3 class="history">History:</h3>
+                <ul>
+                  ${this.atoms[this.activeAtom].map(({state, time}) => html`
+                    <li class="history-li">
+                      <span>${time}</span>
+                      <button class="replay" @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
+                      <pre>${JSON.stringify(state, null, 2)}</pre>
+                    </li>
+                  `)}
+                </ul>
+              </div>
             `
             : ''
           }
-        </div>
+        ${this.activeSelector
+          ? html`
+            <div class="atom-overview">
+              <h2>${this.activeSelector}</h2>
+              <h3>State:</h3>
+              <pre class="state">${JSON.stringify(this.selectors[this.activeSelector][0].value, null, 2)}</pre>
+              <h3 class="history">History:</h3>
+              <ul>
+                ${this.selectors[this.activeSelector].map(({value, time}) => html`
+                  <li class="history-li">
+                    <span>${time}</span>
+                    <pre>${JSON.stringify(value, null, 2)}</pre>
+                  </li>
+                `)}
+              </ul>
+            </div>
+          `
+          : ''
+          }
       </div>
     `;
   }

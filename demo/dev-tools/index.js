@@ -7,7 +7,20 @@ function registerDevtools() {
   window.__atoms = atoms;
   window.__selectors = selectors;
   
-  const oldNotify = Atom.prototype.notify;
+  const oldSelectorNotify = Selector.prototype.notify;
+  Selector.prototype.notify = function(dispatch = true) {
+    if(dispatch) {
+      document.dispatchEvent(new CustomEvent('__SELECTOR', {
+        detail: {
+          key: this.key,
+          value: this.value
+        }
+      }));
+    }
+    oldSelectorNotify.call(this);
+  };
+
+  const oldAtomNotify = Atom.prototype.notify;
   Atom.prototype.notify = function(dispatch = true) {
     if(dispatch) {
       document.dispatchEvent(new CustomEvent('__ATOM', {
@@ -17,7 +30,7 @@ function registerDevtools() {
         }
       }));
     }
-    oldNotify.call(this);
+    oldAtomNotify.call(this);
   };
   
   requestIdleCallback(() => {
@@ -28,6 +41,15 @@ function registerDevtools() {
   
     document.dispatchEvent(new CustomEvent('__ATOM_INIT', {
       detail: allAtoms
+    }));
+
+    const allSelectors = {};
+    selectors.forEach((val, key) => {
+      allSelectors[key] = val.value;
+    });
+  
+    document.dispatchEvent(new CustomEvent('__SELECTOR_INIT', {
+      detail: allSelectors
     }));
   });
 }
@@ -53,13 +75,21 @@ const [loadable, initLoadable] = atom({
   }
 })
 
-// const doubleCount = selector({
-//   key: 'doubleCount',
-//   get: ({getAtom}) => {
-//     const cnt = getAtom(count);
-//     return cnt * 2;
-//   }
-// });
+const doubleCount = selector({
+  key: 'doubleCount',
+  get: ({getAtom}) => {
+    const cnt = getAtom(count);
+    return cnt * 2;
+  }
+});
+
+const doubleCountPlusTen = selector({
+  key: 'doubleCountPlusTen',
+  get: async ({getSelector}) => {
+    const cnt = await getSelector(doubleCount);
+    return cnt + 10;
+  }
+});
 
 // console.log(atoms);
 
@@ -70,6 +100,7 @@ setCount(1);
 
 class Test extends LitAtom(LitElement) {
   static atoms = [count, obj, loadable];
+  static selectors = [doubleCount, doubleCountPlusTen];
 
   connectedCallback() {
     super.connectedCallback();
@@ -80,6 +111,12 @@ class Test extends LitAtom(LitElement) {
     return html`
       <button @click=${() => {setCount(old => old + 1)}}>click</button>
       <div>count: ${this.count}</div>
+      <br>
+      <br>
+      <div>doubleCount: ${this.doubleCount}</div>
+      <br>
+      <br>
+      <div>doubleCountPlusTen: ${this.doubleCountPlusTen}</div>
       <br>
       <br>
       <button @click=${() => {setObj(old => ({state: old.state + 1}))}}>click</button>  

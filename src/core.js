@@ -112,10 +112,6 @@ export const selector = async ({key, get}) => {
 
   const updateSelectorVal = async () => {
     const selector = selectors.get(key);
-    /**
-     * If there are more than 0 components subscribed to a Selector, execute its `get` fn
-     * If there are no components subscribed to a Selector, avoid updating its value
-     */
     selector.value = await selector.get();
     selector.notify();
   }
