@@ -18,7 +18,9 @@ requestIdleCallback(() => {
   document.body.removeChild(s);
   
   document.addEventListener('__SELECTOR', (e) => {
+    if(!e.detail?.key || !e.detail?.value) return;
     const { key, value } = e.detail;
+
     globalSelectorState[key] = [{value, time: new Date().toLocaleTimeString()}, ...(globalSelectorState[key] || [])];
 
     chrome.runtime.sendMessage({
