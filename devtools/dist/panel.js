@@ -2564,6 +2564,7 @@ class AtomDevtools extends LitElement {
       background: #45484c;
       padding: 20px;
       width: 200px;
+      overflow: auto;
     }
 
     .atoms-list button {

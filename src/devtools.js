@@ -30,22 +30,26 @@ export function registerDevtools() {
     }
     oldAtomNotify.call(this);
   };
-  
+
   requestIdleCallback(() => {
     const allAtoms = {};
     atoms.forEach((val, key) => {
       allAtoms[key] = val.state;
     });
-  
+
     document.dispatchEvent(new CustomEvent('__ATOM_INIT', {
       detail: allAtoms
     }));
 
     const allSelectors = {};
     selectors.forEach((val, key) => {
-      allSelectors[key] = val.value;
+      if(val.value?.type === 'html') {
+        allSelectors[key] = "TemplateResult";
+      } else {
+        allSelectors[key] = val.value;
+      }
     });
-  
+
     document.dispatchEvent(new CustomEvent('__SELECTOR_INIT', {
       detail: allSelectors
     }));
