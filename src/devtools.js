@@ -1,17 +1,28 @@
 import { Atom, Selector } from "./Store.js";
 import { atoms, selectors } from './core.js';
 
+const safeAssign = (val) => {
+  try {
+    JSON.stringify(val);
+    return val;
+  } catch {
+    return "Unserializable value.";
+  }
+}
+
 export function registerDevtools() {
   window.__atoms = atoms;
   window.__selectors = selectors;
   
   const oldSelectorNotify = Selector.prototype.notify;
   Selector.prototype.notify = function(dispatch = true) {
+    const val = safeAssign(this.value);
+
     if(dispatch) {
       document.dispatchEvent(new CustomEvent('__SELECTOR', {
         detail: {
           key: this.key,
-          value: this.value
+          value: val
         }
       }));
     }
@@ -43,11 +54,7 @@ export function registerDevtools() {
 
     const allSelectors = {};
     selectors.forEach((val, key) => {
-      if(val.value?.type === 'html') {
-        allSelectors[key] = "TemplateResult";
-      } else {
-        allSelectors[key] = val.value;
-      }
+      allSelectors[key] = safeAssign(val.value);
     });
 
     document.dispatchEvent(new CustomEvent('__SELECTOR_INIT', {
