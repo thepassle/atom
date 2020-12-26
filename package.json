@@ -1,6 +1,6 @@
 {
   "name": "@klaxon/atom",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,9 @@
     "@web/test-runner": "^0.10.1",
     "hanbi": "^0.4.1",
     "haunted": "^4.7.1",
+    "htm": "^3.0.4",
     "lit-element": "^2.4.0",
+    "preact": "^10.5.7",
     "rimraf": "^3.0.2",
     "rollup": "^2.35.1",
     "rollup-plugin-copy": "^3.3.0",

@@ -1,4 +1,4 @@
-import { atoms, selectors } from "./core.js";
+import { atoms, selectors } from "../src/core.js";
 import { useState, useEffect } from 'haunted';
 
 export function useSelector(selector) {

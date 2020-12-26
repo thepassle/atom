@@ -1,4 +1,4 @@
-import { atoms, selectors, updateAtom } from './core.js';
+import { atoms, selectors, updateAtom } from '../src/core.js';
 
 export const LitAtom = (klass) => class LitAtom extends klass {
   constructor() {

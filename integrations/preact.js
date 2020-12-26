@@ -1,11 +1,7 @@
-import { LitElement, html, css } from "lit-element";
-import { registerDevtools, LitAtom, atom, selector } from "../../index.js";
-import { atoms, selectors } from "../../src/core.js";
-import { component, useState, useEffect } from 'haunted';
+import { atoms, selectors } from "../src/core.js";
+import { useState, useEffect } from 'preact/hooks';
 
-registerDevtools();
-
-function useSelector(selector) {
+export function useSelector(selector) {
   const [state, setState] = useState(null);
   
   useEffect(async () => {
@@ -24,7 +20,7 @@ function useSelector(selector) {
   return state;
 }
 
-function useAtom({key}) {
+export function useAtom({key}) {
   const atom = atoms.get(key);
   const [state, setState] = useState(atom.state);
 
@@ -49,34 +45,3 @@ function useAtom({key}) {
     }
   ]
 }
-
-const [countAtom] = atom({
-  key: 'count',
-  default: 0,
-});
-
-const doubleCount = selector({
-  key: 'doubleCount',
-  get: ({getAtom}) => {
-    const count = getAtom(countAtom);
-    return count * 2;
-  }
-});
-
-function Counter() {
-  const [count, setCount] = useAtom(countAtom);
-  const double = useSelector(doubleCount);
-
-  return html`
-    <div id="count">${count}</div>
-    <div id="double">${double}</div>
-    <button type="button" @click=${() => setCount(count + 1)}>
-      Increment
-    </button>
-  `;
-}
-
-customElements.define('my-counter', component(Counter));
-
-
-
