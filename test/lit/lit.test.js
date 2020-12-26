@@ -1,7 +1,8 @@
 import { expect, fixture } from '@open-wc/testing';
 import { LitElement } from 'lit-element';
-import { LitAtom } from '../../src/lit.js';
+import { LitAtom } from '../../integrations/lit.js';
 import { atom, selector } from '../../src/core.js';
+import { AtomLitElement } from '../../integrations/lit-auto.js';
 
 const [count, setCount] = atom({
   key: 'count',
@@ -13,7 +14,36 @@ class BasicAtom extends LitAtom(LitElement) {
 }
 customElements.define('basic-atom', BasicAtom);
 
+class AutomaticAtom extends AtomLitElement {
+  render() {
+    return html`${count.getState()}`;
+  }
+}
+customElements.define('automatic-atom', AutomaticAtom);
+
 describe('lit', () => {
+  describe('auto', () => {
+    let el;
+
+    beforeEach(() => {
+      el = await fixture('<automatic-atom></automatic-atom>');
+    });
+
+    afterEach(() => {
+      el.remove();
+    });
+
+    it('initializes correctly', () => {
+      expect(el.shadowRoot.textContent).to.equal('1');
+    });
+
+    it('updates correctly with `setCount`', async () => {
+      setCount(old => old + 1);
+      await el.updateComplete;
+      expect(el.shadowRoot.textContent).to.equal('2');
+    });
+  });
+
   describe('atoms', () => {
     it('initializes correctly', async () => {
       const el = await fixture('<basic-atom></basic-atom>');
