@@ -1,4 +1,5 @@
 import {LitElement, html,css} from 'lit-element';
+import './json-element.js';
 
 class AtomDevtools extends LitElement {
   static properties = {
@@ -225,14 +226,18 @@ class AtomDevtools extends LitElement {
               <div class="atom-overview">
                 <h2>${this.activeAtom}</h2>
                 <h3>State:</h3>
-                <pre class="state">${JSON.stringify(this.atoms[this.activeAtom][0].state, null, 2)}</pre>
+                <div class="state">
+                  <json-element .value=${this.atoms[this.activeAtom][0].state}></json-element>
+                </div>
                 <h3 class="history">History:</h3>
                 <ul>
                   ${this.atoms[this.activeAtom].map(({state, time}) => html`
                     <li class="history-li">
                       <span>${time}</span>
                       <button class="replay" @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
-                      <pre>${JSON.stringify(state, null, 2)}</pre>
+                      <div class="state">
+                        <json-element .value=${state}></json-element>
+                      </div>
                     </li>
                   `)}
                 </ul>
@@ -245,13 +250,17 @@ class AtomDevtools extends LitElement {
             <div class="atom-overview">
               <h2>${this.activeSelector}</h2>
               <h3>State:</h3>
-              <pre class="state">${JSON.stringify(this.selectors[this.activeSelector][0].value, null, 2)}</pre>
+              <div class="state">
+                <json-element .value=${this.selectors[this.activeSelector][0].value}></json-element>
+              </div>
               <h3 class="history">History:</h3>
               <ul>
                 ${this.selectors[this.activeSelector].map(({value, time}) => html`
                   <li class="history-li">
                     <span>${time}</span>
-                    <pre>${JSON.stringify(value, null, 2)}</pre>
+                    <div class="state">
+                      <json-element .value=${value}></json-element>
+                    </div>
                   </li>
                 `)}
               </ul>
