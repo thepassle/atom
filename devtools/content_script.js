@@ -21,7 +21,7 @@ requestIdleCallback(() => {
     if(!e.detail?.key || !e.detail?.value) return;
     const { key, value } = e.detail;
 
-    globalSelectorState[key] = [{value, time: new Date().toLocaleTimeString()}, ...(globalSelectorState[key] || [])];
+    globalSelectorState[key] = [{value, time: Date.now(), key, type: 'selector'}, ...(globalSelectorState[key] || [])];
 
     chrome.runtime.sendMessage({
       msg: 'selectorupdated',
@@ -31,7 +31,8 @@ requestIdleCallback(() => {
 
   document.addEventListener('__ATOM', (e) => {
     const { key, state } = e.detail;
-    globalAtomState[key] = [{state, time: new Date().toLocaleTimeString()}, ...(globalAtomState[key] || [])];
+    // TODO: everywhere I send the Date.now, I should also send the key
+    globalAtomState[key] = [{state, time: Date.now(), key, type: 'atom'}, ...(globalAtomState[key] || [])];
 
     chrome.runtime.sendMessage({
       msg: 'atomupdated',
@@ -45,7 +46,7 @@ document.addEventListener('__ATOM_INIT', (e) => {
   const atoms = e.detail;
   Object.entries(atoms).forEach(([key, val]) => {
     if(!(key in globalAtomState)) {
-      globalAtomState[key] = [...(globalAtomState[key] || []), {state: val, time: new Date().toLocaleTimeString()}];
+      globalAtomState[key] = [...(globalAtomState[key] || []), {state: val, time: Date.now(), key, type: 'atom'}];
     }
   });
   
@@ -59,7 +60,7 @@ document.addEventListener('__SELECTOR_INIT', (e) => {
   const selectors = e.detail;
   Object.entries(selectors).forEach(([key, val]) => {
     if(!(key in globalSelectorState)) {
-      globalSelectorState[key] = [...(globalSelectorState[key] || []), {value: val, time: new Date().toLocaleTimeString()}];
+      globalSelectorState[key] = [...(globalSelectorState[key] || []), {value: val, time: Date.now(), key, type: 'selector'}];
     }
   });
   

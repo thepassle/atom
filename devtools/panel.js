@@ -7,6 +7,8 @@ class AtomDevtools extends LitElement {
     selectors: { type: Object },
     activeAtom: { type: Object },
     activeSelector: { type: Object },
+    history: { type: Array },
+    showHistory: { type: Boolean },
   }
   static styles = css`
     :host {
@@ -113,6 +115,16 @@ class AtomDevtools extends LitElement {
       border: solid 2px #36393e;
     }
 
+    .timestamp {
+      color: #61afef;
+      padding: 5px 10px;
+      font-size: 12px;
+      background: #36393e;
+      border-radius: 4px;
+      border: solid 2px #36393e;
+      text-transform: uppercase;
+    }
+
     .replay {
       color: #61afef;
       padding: 5px 10px;
@@ -135,6 +147,39 @@ class AtomDevtools extends LitElement {
       list-style: none;
       padding: 0;
     }
+
+    .history-item {
+      border-radius: 5px;
+      padding: 10px;
+      background: rgb(69, 72, 76);
+      margin-bottom: 20px;
+    }
+
+    .history-item span {
+      display: inline-block;
+    }
+
+    .history-item.atom {
+      margin-right: 60px;
+    }
+    .history-item.selector {
+      margin-left: 60px;
+    }
+
+    .timestamp.selector {
+      color: white;
+    }
+    .timestamp.atom {
+      color: #f6a7ba;
+    }
+    h1:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .activate:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
   `;
 
   constructor() {
@@ -143,6 +188,8 @@ class AtomDevtools extends LitElement {
     this.selectors = {};
     this.activeAtom = null;
     this.activeSelector = null;
+    this.history = [];
+    this.showHistory = true;
   }
 
   connectedCallback() {
@@ -153,6 +200,7 @@ class AtomDevtools extends LitElement {
       ({data}) => {
         this.atoms = data.atoms;
         this.selectors = data.selectors;
+        this.history = this.createHistory();
       });
     });
 
@@ -160,12 +208,16 @@ class AtomDevtools extends LitElement {
 
       if(msg === 'atomupdated') {
         this.atoms = data;
+        this.history = this.createHistory();
         this.requestUpdate();
+        console.log(this.history);
       }
       
       if(msg === 'selectorupdated') {
         this.selectors = data;
+        this.history = this.createHistory();
         this.requestUpdate();
+        console.log(this.history);
       }
     });
 
@@ -175,9 +227,18 @@ class AtomDevtools extends LitElement {
         ({data}) => {
           this.atoms = data.atoms;
           this.selectors = data.selectors;
+          this.history = this.createHistory();
         });
       });
     });
+  }
+
+  createHistory() {
+    let history = [];
+    for (const [, val] of Object.entries({...this.atoms, ...this.selectors})) {
+      history = [...history, ...val];
+    }
+    return history.sort((a, b) => a.time - b.time).reverse();
   }
 
   executeOnPage(key, state) {
@@ -191,16 +252,24 @@ class AtomDevtools extends LitElement {
     if(type === 'atom') {
       this.activeAtom = key;
       this.activeSelector = null;
-    } else {
+      this.showHistory = false;
+    } 
+    if(type === 'selector') {
       this.activeSelector = key;
       this.activeAtom = null;
+      this.showHistory = false;
+    }
+    if(type === 'history') {
+      this.activeSelector = null;
+      this.activeAtom = null;
+      this.showHistory = true;
     }
   }
 
   render() {
     return html`
       <header>
-        <h1>Atom Devtools</h1>
+        <h1 @click=${() => this.setActive('history')}>Atom Devtools</h1>
       </header>
       <div class="main">
         <div class="atoms-list">
@@ -221,6 +290,25 @@ class AtomDevtools extends LitElement {
             `)}
           </ul>
         </div>
+        ${this.showHistory
+          ? html`
+            <div class="atom-overview">
+              <h2>History</h2>
+              ${this.history.map((obj) => html`
+                  <div class="history-item ${obj.type}">
+                    <span class="timestamp">${new Date(obj.time).toLocaleTimeString()}</span> 
+                    <span @click=${() => this.setActive(obj.type, obj.key)} class="timestamp activate ${obj.type}">${obj.key}</span>
+                    ${obj.state ? html`<button style="float: right;" class="replay" @click=${() => this.executeOnPage(obj.key, obj.state)}>replay</button>` : ''}
+                    <div class="state">
+                      <json-element .value=${obj.state ?? obj.value}></json-element>
+                    </div class="state">
+                  </div>
+                `
+              )}
+            </div>
+          `
+          : ''
+        }
         ${this.activeAtom
             ? html`
               <div class="atom-overview">
@@ -233,7 +321,7 @@ class AtomDevtools extends LitElement {
                 <ul>
                   ${this.atoms[this.activeAtom].map(({state, time}) => html`
                     <li class="history-li">
-                      <span>${time}</span>
+                      <span>${new Date(time).toLocaleTimeString()}</span>
                       <button class="replay" @click=${() => this.executeOnPage(this.activeAtom, state)}>replay</button>
                       <div class="state">
                         <json-element .value=${state}></json-element>
@@ -257,7 +345,7 @@ class AtomDevtools extends LitElement {
               <ul>
                 ${this.selectors[this.activeSelector].map(({value, time}) => html`
                   <li class="history-li">
-                    <span>${time}</span>
+                    <span>${new Date(time).toLocaleTimeString()}</span>
                     <div class="state">
                       <json-element .value=${value}></json-element>
                     </div>
