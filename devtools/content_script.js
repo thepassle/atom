@@ -40,6 +40,20 @@ requestIdleCallback(() => {
     }, () => {});
   });
 
+  setTimeout(() => {
+    console.log({
+      atoms: globalAtomState,
+      selectors: globalSelectorState
+    })
+    chrome.runtime.sendMessage({
+      msg: 'get_latest',
+      data: JSON.stringify({
+        atoms: globalAtomState,
+        selectors: globalSelectorState
+      })
+    }, () => {});
+  })
+
 });
 
 document.addEventListener('__ATOM_INIT', (e) => {
@@ -50,10 +64,10 @@ document.addEventListener('__ATOM_INIT', (e) => {
     }
   });
   
-  // chrome.runtime.sendMessage({
-  //   msg: 'atomupdated',
-  //   data: globalAtomState
-  // }, () => {});
+  chrome.runtime.sendMessage({
+    msg: 'atomupdated',
+    data: globalAtomState
+  }, () => {});
 });
 
 document.addEventListener('__SELECTOR_INIT', (e) => {
@@ -64,10 +78,20 @@ document.addEventListener('__SELECTOR_INIT', (e) => {
     }
   });
   
-  // chrome.runtime.sendMessage({
-  //   msg: 'selectorupdated',
-  //   data: globalSelectorState
-  // }, () => {});
+  chrome.runtime.sendMessage({
+    msg: 'selectorupdated',
+    data: globalSelectorState
+  }, () => {});
+});
+
+window.addEventListener("focus", () => {
+  chrome.runtime.sendMessage({
+    msg: 'get_latest',
+    data: JSON.stringify({
+      atoms: globalAtomState,
+      selectors: globalSelectorState
+    })
+  }, () => {});
 });
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {

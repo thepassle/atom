@@ -12,6 +12,59 @@
         background-color: #36393e;
         color: #f6a7ba;
       }
+
+      generic-dialog-overlay::part(dialog) {
+        border-radius: 10px;
+        background: rgb(69, 72, 76);
+        color: white;
+        width: 400px;
+        box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.5);
+      }
+
+      .dialog {
+        display: flex;
+        padding: 10px;
+        flex-direction: column;
+      }
+
+      .dialog textarea {
+        height: 200px;
+        margin-bottom: 15px;
+      }
+
+      .dialog button {
+        background: none;
+        border: solid 2px rgb(46, 50, 54);
+        border-radius: 5px;
+        height: 28px;
+        color: #61afef;
+      }
+
+      .dialog form {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dialog button:hover,
+      .dialog button:focus {
+        box-shadow: 0 0 0 2px #61afef;
+      }
+
+      .dialog svg {
+        fill: #61afef;
+      }
+
+      .dialog-header {
+        display: flex;
+      }
+
+      .dialog-header h1{
+        flex: 1;
+        color: #f6a7ba;
+        margin-bottom: 15px;
+      } 
+
+
     </style>
   </head>
   <body>

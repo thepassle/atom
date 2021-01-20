@@ -2526,6 +2526,741 @@ LitElement['finalized'] = true;
  */
 LitElement.render = render$1;
 
+const KEYCODES = {
+  TAB: 9,
+  ENTER: 13,
+  SHIFT: 16,
+  ESC: 27,
+  SPACE: 32,
+  END: 35,
+  HOME: 36,
+  LEFT: 37,
+  UP: 38,
+  RIGHT: 39,
+  DOWN: 40,
+};
+
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>
+    ::slotted(button) {
+      display: block;
+      width: 100%;
+    }
+
+    :host {
+      display: block;
+    }
+  </style>
+  <slot>
+  </slot>
+`;
+
+const template$1 = document.createElement('template');
+template$1.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      padding: 10px;
+      border: 1px solid hsl(206, 74%, 54%);
+      border-radius: 4px;
+      background: hsl(206, 74%, 90%);
+    }
+
+  </style>
+  <div>
+    <slot></slot>
+  </div>
+`;
+
+class EventTargetShim {
+  constructor() {
+    const delegate = document.createDocumentFragment();
+    this.addEventListener = delegate.addEventListener.bind(delegate);
+    this.dispatchEvent = delegate.dispatchEvent.bind(delegate);
+    this.removeEventListener = delegate.removeEventListener.bind(delegate);
+  }
+}
+
+/**
+ * Traverses the slots of the open shadowroots and returns all children matching the query.
+ * @param {ShadowRoot | HTMLElement} root
+ * @param skipNode
+ * @param isMatch
+ * @param {number} maxDepth
+ * @param {number} depth
+ * @returns {HTMLElement[]}
+ */
+function queryShadowRoot(root, skipNode, isMatch, maxDepth = 20, depth = 0) {
+  const matches = [];
+  // If the depth is above the max depth, abort the searching here.
+  if (depth >= maxDepth) {
+    return matches;
+  }
+  // Traverses a slot element
+  const traverseSlot = $slot => {
+    // Only check nodes that are of the type Node.ELEMENT_NODE
+    // Read more here https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+    const assignedNodes = $slot.assignedNodes().filter(node => node.nodeType === 1);
+    if (assignedNodes.length > 0) {
+      return queryShadowRoot(
+        assignedNodes[0].parentElement,
+        skipNode,
+        isMatch,
+        maxDepth,
+        depth + 1,
+      );
+    }
+    return [];
+  };
+  // Go through each child and continue the traversing if necessary
+  // Even though the typing says that children can't be undefined, Edge 15 sometimes gives an undefined value.
+  // Therefore we fallback to an empty array if it is undefined.
+  const children = Array.from(root.children || []);
+  for (const $child of children) {
+    // Check if the node and its descendants should be skipped
+    if (skipNode($child)) {
+      continue;
+    }
+    // If the child matches we always add it
+    if (isMatch($child)) {
+      matches.push($child);
+    }
+    if ($child.shadowRoot != null) {
+      matches.push(...queryShadowRoot($child.shadowRoot, skipNode, isMatch, maxDepth, depth + 1));
+    } else if ($child.tagName === 'SLOT') {
+      matches.push(...traverseSlot($child));
+    } else {
+      matches.push(...queryShadowRoot($child, skipNode, isMatch, maxDepth, depth + 1));
+    }
+  }
+  return matches;
+}
+
+/**
+ * Returns whether the element is hidden.
+ * @param $elem
+ */
+function isHidden($elem) {
+  return (
+    $elem.hasAttribute('hidden') ||
+    ($elem.hasAttribute('aria-hidden') && $elem.getAttribute('aria-hidden') !== 'false') ||
+    // A quick and dirty way to check whether the element is hidden.
+    // For a more fine-grained check we could use "window.getComputedStyle" but we don't because of bad performance.
+    // If the element has visibility set to "hidden" or "collapse", display set to "none" or opacity set to "0" through CSS
+    // we won't be able to catch it here. We accept it due to the huge performance benefits.
+    $elem.style.display === `none` ||
+    $elem.style.opacity === `0` ||
+    $elem.style.visibility === `hidden` ||
+    $elem.style.visibility === `collapse`
+  );
+  // If offsetParent is null we can assume that the element is hidden
+  // https://stackoverflow.com/questions/306305/what-would-make-offsetparent-null
+  // || $elem.offsetParent == null;
+}
+/**
+ * Returns whether the element is disabled.
+ * @param $elem
+ */
+function isDisabled($elem) {
+  return (
+    $elem.hasAttribute('disabled') ||
+    ($elem.hasAttribute('aria-disabled') && $elem.getAttribute('aria-disabled') !== 'false')
+  );
+}
+/**
+ * Determines whether an element is focusable.
+ * Read more here: https://stackoverflow.com/questions/1599660/which-html-elements-can-receive-focus/1600194#1600194
+ * Or here: https://stackoverflow.com/questions/18261595/how-to-check-if-a-dom-element-is-focusable
+ * @param $elem
+ */
+function isFocusable($elem) {
+  // Discard elements that are removed from the tab order.
+  if ($elem.getAttribute('tabindex') === '-1' || isHidden($elem) || isDisabled($elem)) {
+    return false;
+  }
+  return (
+    // At this point we know that the element can have focus (eg. won't be -1) if the tabindex attribute exists
+    $elem.hasAttribute('tabindex') ||
+    // Anchor tags or area tags with a href set
+    (($elem instanceof HTMLAnchorElement || $elem instanceof HTMLAreaElement) &&
+      $elem.hasAttribute('href')) ||
+    // Form elements which are not disabled
+    ($elem instanceof HTMLButtonElement ||
+      $elem instanceof HTMLInputElement ||
+      $elem instanceof HTMLTextAreaElement ||
+      $elem instanceof HTMLSelectElement) ||
+    // IFrames
+    $elem instanceof HTMLIFrameElement
+  );
+}
+
+const timeouts = new Map();
+/**
+ * Debounces a callback.
+ * @param cb
+ * @param ms
+ * @param id
+ */
+function debounce(cb, ms, id) {
+  // Clear current timeout for id
+  const timeout = timeouts.get(id);
+  if (timeout != null) {
+    window.clearTimeout(timeout);
+  }
+  // Set new timeout
+  timeouts.set(
+    id,
+    window.setTimeout(() => {
+      cb();
+      timeouts.delete(id);
+    }, ms),
+  );
+}
+
+/**
+ * Template for the focus trap.
+ */
+const template$2 = document.createElement('template');
+template$2.innerHTML = `
+	<div id="start"></div>
+	<div id="backup"></div>
+	<slot></slot>
+	<div id="end"></div>
+`;
+/**
+ * Focus trap web component.
+ * @customElement focus-trap
+ * @slot - Default content.
+ */
+class FocusTrap extends HTMLElement {
+  /**
+   * Attaches the shadow root.
+   */
+  constructor() {
+    super();
+    // The debounce id is used to distinguish this focus trap from others when debouncing
+    this.debounceId = Math.random().toString();
+    this._focused = false;
+    const shadow = this.attachShadow({ mode: 'open' });
+    shadow.appendChild(template$2.content.cloneNode(true));
+    this.$backup = shadow.querySelector('#backup');
+    this.$start = shadow.querySelector('#start');
+    this.$end = shadow.querySelector('#end');
+    this.focusLastElement = this.focusLastElement.bind(this);
+    this.focusFirstElement = this.focusFirstElement.bind(this);
+    this.onFocusIn = this.onFocusIn.bind(this);
+    this.onFocusOut = this.onFocusOut.bind(this);
+  }
+
+  // Whenever one of these attributes changes we need to render the template again.
+  static get observedAttributes() {
+    return ['inactive'];
+  }
+
+  /**
+   * Determines whether the focus trap is active or not.
+   * @attr
+   */
+  get inactive() {
+    return this.hasAttribute('inactive');
+  }
+
+  set inactive(value) {
+    value ? this.setAttribute('inactive', '') : this.removeAttribute('inactive');
+  }
+
+  /**
+   * Returns whether the element currently has focus.
+   */
+  get focused() {
+    return this._focused;
+  }
+
+  /**
+   * Hooks up the element.
+   */
+  connectedCallback() {
+    this.$start.addEventListener('focus', this.focusLastElement);
+    this.$end.addEventListener('focus', this.focusFirstElement);
+    // Focus out is called every time the user tabs around inside the element
+    this.addEventListener('focusin', this.onFocusIn);
+    this.addEventListener('focusout', this.onFocusOut);
+    this.render();
+  }
+
+  /**
+   * Tears down the element.
+   */
+  disconnectedCallback() {
+    this.$start.removeEventListener('focus', this.focusLastElement);
+    this.$end.removeEventListener('focus', this.focusFirstElement);
+    this.removeEventListener('focusin', this.onFocusIn);
+    this.removeEventListener('focusout', this.onFocusOut);
+  }
+
+  /**
+   * When the attributes changes we need to re-render the template.
+   */
+  attributeChangedCallback() {
+    this.render();
+  }
+
+  /**
+   * Focuses the first focusable element in the focus trap.
+   */
+  focusFirstElement() {
+    this.trapFocus();
+  }
+
+  /**
+   * Focuses the last focusable element in the focus trap.
+   */
+  focusLastElement() {
+    this.trapFocus(true);
+  }
+
+  /**
+   * Returns a list of the focusable children found within the element.
+   */
+  getFocusableElements() {
+    return queryShadowRoot(this, isHidden, isFocusable);
+  }
+
+  /**
+   * Focuses on either the last or first focusable element.
+   * @param {boolean} trapToEnd
+   */
+  trapFocus(trapToEnd) {
+    if (this.inactive) return;
+    const focusableChildren = this.getFocusableElements();
+    if (focusableChildren.length > 0) {
+      if (trapToEnd) {
+        focusableChildren[focusableChildren.length - 1].focus();
+      } else {
+        focusableChildren[0].focus();
+      }
+      this.$backup.setAttribute('tabindex', '-1');
+    } else {
+      // If there are no focusable children we need to focus on the backup
+      // to trap the focus. This is a useful behavior if the focus trap is
+      // for example used in a dialog and we don't want the user to tab
+      // outside the dialog even though there are no focusable children
+      // in the dialog.
+      this.$backup.setAttribute('tabindex', '0');
+      this.$backup.focus();
+    }
+  }
+
+  /**
+   * When the element gains focus this function is called.
+   */
+  onFocusIn() {
+    this.updateFocused(true);
+  }
+
+  /**
+   * When the element looses its focus this function is called.
+   */
+  onFocusOut() {
+    this.updateFocused(false);
+  }
+
+  /**
+   * Updates the focused property and updates the view.
+   * The update is debounced because the focusin and focusout out
+   * might fire multiple times in a row. We only want to render
+   * the element once, therefore waiting until the focus is "stable".
+   * @param value
+   */
+  updateFocused(value) {
+    debounce(
+      () => {
+        if (this.focused !== value) {
+          this._focused = value;
+          this.render();
+        }
+      },
+      0,
+      this.debounceId,
+    );
+  }
+
+  /**
+   * Updates the template.
+   */
+  render() {
+    this.$start.setAttribute('tabindex', !this.focused || this.inactive ? `-1` : `0`);
+    this.$end.setAttribute('tabindex', !this.focused || this.inactive ? `-1` : `0`);
+    this.focused ? this.setAttribute('focused', '') : this.removeAttribute('focused');
+  }
+}
+window.customElements.define('focus-trap', FocusTrap);
+
+// eslint-disable-next-line
+
+const template$3 = document.createElement('template');
+template$3.innerHTML = `
+  <style>
+    :host {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0,0,0,0.5);
+      position: fixed;
+      top: 0;
+    }
+
+    [part="dialog"] {
+      width: auto;
+      height: auto;
+      background-color: white;
+    }
+  </style>
+  <focus-trap>
+    <div role="dialog" part="dialog"><slot></slot></div>
+  </focus-trap>
+`;
+
+class GenericDialogOverlay extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.appendChild(template$3.content.cloneNode(true));
+
+    this.__onClick = this.__onClick.bind(this);
+    this.__onFocusIn = this.__onFocusIn.bind(this);
+  }
+
+  connectedCallback() {
+    if (this.hasAttribute('close-on-outside-click')) {
+      this.addEventListener('click', this.__onClick, true);
+    }
+
+    this.dialog = this.shadowRoot.querySelector("[role='dialog']");
+    this.dialog.setAttribute('tabindex', '-1');
+    this.dialog.focus();
+
+    ['click', 'blur'].forEach(event => {
+      this.dialog.addEventListener(event, () => {
+        this.dialog.removeAttribute('tabindex');
+      });
+    });
+
+    window.addEventListener('focusin', this.__onFocusIn);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('focusin', this.__onFocusIn);
+  }
+
+  __onFocusIn() {
+    if (dialog.__dialogOpen) {
+      if (!this.contains(document.activeElement)) {
+        this.dialog.setAttribute('tabindex', '-1');
+        this.dialog.focus();
+      }
+    }
+  }
+
+  __onClick(e) {
+    if (
+      !e.composedPath().includes(this.dialog) &&
+      dialog.__dialogOpen &&
+      dialog.__closeOnOutsideClick
+    ) {
+      dialog.close();
+    }
+  }
+}
+
+customElements.define('generic-dialog-overlay', GenericDialogOverlay);
+
+class Dialog extends EventTargetShim {
+  open({ closeOnEscape = true, closeOnOutsideClick = true, invokerNode, content }) {
+    this.__dialogOpen = true;
+    this.__invokerNode = invokerNode;
+    this.__closeOnEscape = closeOnEscape;
+    this.__closeOnOutsideClick = closeOnOutsideClick;
+
+    if (this.__closeOnEscape) {
+      window.addEventListener('keydown', this.__onKeyDown.bind(this), true);
+    }
+
+    [...document.body.children].forEach(node => {
+      if (node.localName !== 'script') {
+        if (!node.hasAttribute('aria-hidden')) {
+          node.setAttribute('dialog-disabled', '');
+          node.setAttribute('aria-hidden', 'true');
+          node.setAttribute('inert', '');
+        }
+      }
+    });
+
+    const dialogOverlay = document.createElement('generic-dialog-overlay');
+    this.__dialogOverlay = dialogOverlay;
+    if (this.__closeOnOutsideClick) {
+      dialogOverlay.setAttribute('close-on-outside-click', '');
+    }
+    document.body.appendChild(dialogOverlay);
+
+    content(dialogOverlay);
+    this.dispatchEvent(new Event('dialog-opened'));
+  }
+
+  // eslint-disable-next-line
+  close() {
+    this.__dialogOpen = false;
+
+    [...document.body.children].forEach(node => {
+      if (node.localName !== 'script') {
+        if (node.hasAttribute('dialog-disabled')) {
+          node.removeAttribute('dialog-disabled');
+          node.removeAttribute('aria-hidden');
+          node.removeAttribute('inert');
+        }
+      }
+    });
+
+    document.querySelector('generic-dialog-overlay').remove();
+
+    this.__invokerNode.focus();
+    this.__invokerNode = null;
+
+    this.dispatchEvent(new Event('dialog-closed'));
+  }
+
+  __onKeyDown(e) {
+    if (e.keyCode === KEYCODES.ESC && this.__dialogOpen && this.__closeOnEscape) {
+      this.close();
+      window.removeEventListener('keydown', this.__onKeyDown.bind(this), true);
+    }
+  }
+}
+
+const dialog = new Dialog();
+
+const template$4 = document.createElement('template');
+template$4.innerHTML = `
+  <slot name="invoker">
+    <button>open dialog</button>
+  </slot>
+
+  <slot hidden name="content">
+  </slot>
+`;
+
+const template$5 = document.createElement('template');
+template$5.innerHTML = `
+  <style>
+    :host {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-bottom: lightgrey solid 1px;
+    }
+
+    :host slot[name="detail"] {
+      display: none;
+    }
+
+    :host([expanded]) slot[name="detail"] {
+      display: block;
+    }
+
+    ::slotted(button) {
+      text-align: left;
+      width: 100%;
+      display: flex;
+
+      border: none;
+      margin: 0;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      padding-left: 0;
+      padding-right: 0;
+      overflow: visible;
+      background: transparent;
+      font-size: 16px;
+    }
+
+    ::slotted(button):hover {
+      background-color: #dedede;
+    }
+  </style>
+
+  <slot
+    name="toggle"
+    class="toggle"
+  >
+  </slot>
+
+  <slot name="detail"></slot>
+`;
+
+const template$6 = document.createElement('template');
+template$6.innerHTML = `
+  <slot>
+  </slot>
+`;
+
+const template$7 = document.createElement('template');
+template$7.innerHTML = `
+  <style>
+    :host {
+      display: block;
+    }
+
+    :host .group {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    :host([vertical]) .group {
+      flex-direction: column;
+    }
+
+    :host ::slotted(*) {
+      margin-right: 10px;
+      margin-bottom: 0px;
+      position: relative;
+
+      border: 2px solid transparent;
+      display: inline-block;
+      padding: 0.125em;
+      padding-left: 1.5em;
+      padding-right: 0.5em;
+      cursor: default;
+      outline: none;
+    }
+
+    :host([vertical]) ::slotted(*) {
+      margin-right: 0px;
+      margin-bottom: 10px;
+    }
+
+    ::slotted(*)::before {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border: 1px solid hsl(0, 0%, 66%);
+      border-radius: 100%;
+      background-image: linear-gradient(to bottom, hsl(300, 3%, 93%), #fff 60%);
+    }
+
+    ::slotted(*)::before,::slotted(*)::after {
+      position: absolute;
+      top: 50%;
+      left: 7px;
+      transform: translate(-20%, -50%);
+      content: '';
+    }
+
+    ::slotted([aria-checked="true"])::before  {
+      border-color: hsl(216, 80%, 50%);
+      background: hsl(217, 95%, 68%);
+      background-image: linear-gradient(to bottom, hsl(217, 95%, 68%), hsl(216, 80%, 57%));
+    }
+    ::slotted([aria-checked="true"])::after  {
+      display: block;
+      border: 0.1875em solid #fff;
+      border-radius: 100%;
+      transform: translate(25%, -50%);
+    }
+
+    :host([disabled]) {
+      filter: brightness(0.7);
+    }
+  </style>
+
+  <div part="group" role="radiogroup" class="group">
+    <slot></slot>
+  </div>
+`;
+
+const template$8 = document.createElement('template');
+template$8.innerHTML = `
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      height: 16px;
+    }
+
+    :host([checked]) .thumb {
+      right: 0px;
+    }
+
+    :host([disabled]) {
+      opacity: 50%;
+    }
+
+    .button {
+      display: inline-block;
+      position: relative;
+      height: 100%;
+      width: 36px;
+    }
+
+    .track {
+      height: 100%;
+      background-color: lightgrey;
+    }
+
+    .thumb {
+      right: 18px;
+      transition: right .1s;
+      top: 0;
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      background-color: grey;
+    }
+
+    div[part="button"]:focus .thumb {
+      box-shadow: var(--generic-switch-focus, 0 0 0 2px skyblue);
+    }
+
+  </style>
+  <label part="label"><slot></slot></label>
+  <div part="button" class="button">
+    <div part="track" class="track"></div>
+    <div part="thumb" class="thumb"></div>
+  </div>
+`;
+
+const template$9 = document.createElement('template');
+template$9.innerHTML = `
+  <style>
+    :host {
+      display: block;
+    }
+
+    :host([vertical]) {
+      display: flex;
+    }
+
+    :host([vertical]) div[role="tablist"] {
+      flex-direction: column;
+    }
+
+    div[role="tablist"] {
+      display: flex;
+    }
+  </style>
+
+  <div part="tablist" role="tablist">
+    <slot name="tab"></slot>
+  </div>
+
+  <div part="panel">
+    <slot name="panel"></slot>
+  </div>
+`;
+
 var OpenEnum = {
   CLOSED: "closed",
   TOPONLY: "top-only",
@@ -2764,6 +3499,8 @@ class JSONElement extends HTMLElement {
 
 customElements.define("json-element", JSONElement);
 
+const EDIT = html`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 17.46v3.04c0 .28.22.5.5.5h3.04c.13 0 .26-.05.35-.15L17.81 9.94l-3.75-3.75L3.15 17.1c-.1.1-.15.22-.15.36zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+const CLOSE = html`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18.3 5.71c-.39-.39-1.02-.39-1.41 0L12 10.59 7.11 5.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41L10.59 12 5.7 16.89c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 13.41l4.89 4.89c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/></svg>`;
 class AtomDevtools extends LitElement {
   static properties = {
     atoms: { type: Object },
@@ -2777,6 +3514,20 @@ class AtomDevtools extends LitElement {
     :host {
       display: block;
       height: 100vh; 
+    }
+
+    .svg {
+      background: none;
+      border: solid 2px rgb(46, 50, 54);
+      border-radius: 5px;
+    }
+
+    .svg svg {
+      fill: #61afef;
+    }
+
+    .svg:focus, .svg:hover {
+      box-shadow: 0 0 0 2px #61afef;
     }
 
     h1 {
@@ -2849,11 +3600,18 @@ class AtomDevtools extends LitElement {
     }
 
     .state {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       border-radius: 3px;
       color: white;
       padding: 10px;
       background: rgb(69, 72, 76);
       font-size: 14px;
+    }
+
+    .state json-element {
+      flex: 1;
     }
 
     .history {
@@ -2968,32 +3726,40 @@ class AtomDevtools extends LitElement {
     });
 
     chrome.runtime.onMessage.addListener(({msg, data}, _, sendResponse) => {
-
       if(msg === 'atomupdated') {
         this.atoms = data;
         this.history = this.createHistory();
-        this.requestUpdate();
-        console.log(this.history);
       }
       
       if(msg === 'selectorupdated') {
         this.selectors = data;
         this.history = this.createHistory();
-        this.requestUpdate();
-        console.log(this.history);
+      }
+
+      if(msg === 'get_latest') {
+        const parsedData = JSON.parse(data);
+        if(
+          Object.keys(parsedData.atoms).length === 0 &&
+          Object.keys(parsedData.selectors).length === 0 
+        ) {
+          return;
+        }
+        this.selectors = parsedData.selectors;
+        this.atoms = parsedData.atoms;
+        this.history = this.createHistory();
       }
     });
 
-    chrome.tabs.onUpdated.addListener(() => {
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {msg: "get_latest"},
-        ({data}) => {
-          this.atoms = data.atoms;
-          this.selectors = data.selectors;
-          this.history = this.createHistory();
-        });
-      });
-    });
+    // chrome.tabs.onUpdated.addListener(() => {
+    //   chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    //     chrome.tabs.sendMessage(tabs[0].id, {msg: "get_latest"},
+    //     ({data}) => {
+    //       this.atoms = data.atoms;
+    //       this.selectors = data.selectors;
+    //       this.history = this.createHistory();
+    //     });
+    //   });
+    // });
   }
 
   createHistory() {
@@ -3008,6 +3774,35 @@ class AtomDevtools extends LitElement {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, {msg: "replay_atom", data: {key, state}},
       () => {});
+    });
+  }
+
+  openDialog(e, key, state) {
+    const executeOnPage = (e, key) => {
+      e.preventDefault();
+      const newState = JSON.parse(e.target.elements['editedState'].value);
+      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {msg: "replay_atom", data: {key, state: newState}},
+        () => {});
+      });
+    };
+
+    dialog.open({
+      invokerNode: e.target,
+      content: (dialogNode) => {
+        render(html`
+          <div class="dialog">
+            <div class="dialog-header">
+              <h1>Edit ${key}</h1>
+              <button @click=${() => dialog.close()}>${CLOSE}</button>
+            </div>
+            <form @submit=${(e) => executeOnPage(e, key)}>
+              <textarea name="editedState" .value=${JSON.stringify(state, null, 2)}></textarea>
+              <button type="submit">modify</button>
+            </form>
+          </div>
+        `, dialogNode);
+      }
     });
   }
 
@@ -3079,6 +3874,7 @@ class AtomDevtools extends LitElement {
                 <h3>State:</h3>
                 <div class="state">
                   <json-element .value=${this.atoms[this.activeAtom][0].state}></json-element>
+                  <button @click=${(e) => this.openDialog(e, this.activeAtom, this.atoms[this.activeAtom][0].state)} class="svg">${EDIT}</button>
                 </div>
                 <h3 class="history">History:</h3>
                 <ul>
