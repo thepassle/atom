@@ -32,10 +32,6 @@ import { Atom, Selector } from "./Store.js";
  * @property {() => void} update
  */
 
-/** @type {Map<string, Atom>} */
-export const atoms = new Map();
-/** @type {Map<string, Selector>} */
-export const selectors = new Map();
 
 /** @param {Atom} atom */
 const notify = atom => {
@@ -61,33 +57,28 @@ export const updateAtom = (atom, val) => {
  * @returns {[atom, (val?: any) => void | ((val?: any) => Promise<any>)]}
  */
 export const atom = ({key, default: val, loadable, effects}) => {
-  if(!atoms.has(key)) {
-    const atom = new Atom();
+  const atom = new Atom();
 
-    if(val && loadable) throw new Error("Atom can't have a default and be loadable");
- 
-    atom.state = typeof val === 'function' ? val() : val;
+  if(val && loadable) throw new Error("Atom can't have a default and be loadable");
 
-    if(loadable) {
-      atom.state = { status: 'initialized', result: null };
-      atom.loadable = loadable;
-    }
+  atom.state = typeof val === 'function' ? val() : val;
 
-    atom.effects = effects || [];
-    atom.cleanupEffects = atom.effects?.map(effect => effect());
-    atom.key = key;
-
-    atoms.set(key, atom);
+  if(loadable) {
+    atom.state = { status: 'initialized', result: null };
+    atom.loadable = loadable;
   }
+
+  atom.effects = effects || [];
+  atom.cleanupEffects = atom.effects?.map(effect => effect());
+  atom.key = key;
 
   return [{
     key,
-    getState: () => atoms.get(key).state,
-    update: () => {notify(atoms.get(key))}
+    getState: () => atom.state,
+    update: () => {notify(atom)}
   },
   loadable 
     ? (val) => {
-        const atom = atoms.get(key);
         atom.state.status = 'loading';
 
         notify(atom);
@@ -99,7 +90,6 @@ export const atom = ({key, default: val, loadable, effects}) => {
           .finally(() => {notify(atom)});
       }
     : (val) => {
-        const atom = atoms.get(key);
         updateAtom(atom, val);
       }
   ]
@@ -120,8 +110,7 @@ export const selector = async ({key, get}) => {
    * @param {atom} atom 
    * @returns {any} state
    */
-  const getAtom = ({key: atomKey}) => {
-    const atom = atoms.get(atomKey);
+  const getAtom = (atom) => {
     atom.addEventListener(key, updateSelectorVal);
     parents.add(atomKey);
     atom.children.add(key);
