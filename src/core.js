@@ -72,36 +72,33 @@ export const atom = ({key, default: val, loadable, effects}) => {
   atom.cleanupEffects = atom.effects?.map(effect => effect());
   atom.key = key;
 
-  return [{
-    key,
-    getState: () => atom.state,
-    update: () => {notify(atom)}
-  },
-  loadable 
-    ? (val) => {
-        atom.state.status = 'loading';
+  return [
+    atom,
+    loadable 
+      ? (val) => {
+          atom.state.status = 'loading';
 
-        notify(atom);
-        atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];
+          notify(atom);
+          atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];
 
-        return atom.loadable(val)
-          .then((res) => {atom.state = {status: 'success', result: res}})
-          .catch((err) => {atom.state = {status: 'error', result: err}})
-          .finally(() => {notify(atom)});
-      }
-    : (val) => {
-        updateAtom(atom, val);
-      }
-  ]
+          return atom.loadable(val)
+            .then((res) => {atom.state = {status: 'success', result: res}})
+            .catch((err) => {atom.state = {status: 'error', result: err}})
+            .finally(() => {notify(atom)});
+        }
+      : (val) => {
+          updateAtom(atom, val);
+        }
+    ]
 }
 
 
 /** @param {selectorOptions} selector */
 export const selector = async ({key, get}) => {
   const parents = new Set();
+  const selector = new Selector();
 
   const updateSelectorVal = async () => {
-    const selector = selectors.get(key);
     selector.value = await selector.get();
     selector.notify();
   }
@@ -111,8 +108,9 @@ export const selector = async ({key, get}) => {
    * @returns {any} state
    */
   const getAtom = (atom) => {
+    console.log(atom);
     atom.addEventListener(key, updateSelectorVal);
-    parents.add(atomKey);
+    parents.add(atom.key);
     atom.children.add(key);
     return atom.state;
   }
@@ -133,16 +131,10 @@ export const selector = async ({key, get}) => {
   
   const createGet = ({getAtom, getSelector}) => async () => get({getAtom, getSelector});
 
-  if(!selectors.has(key)) {
-    const selector = new Selector();
-    selector.key = key;
-    selector.get = createGet({getAtom, getSelector});
-    selector.parents = parents;
-    selectors.set(key, selector);
-    selector.value = await selector.get();
-  }
+  selector.key = key;
+  selector.get = createGet({getAtom, getSelector});
+  selector.parents = parents;
+  selector.value = await selector.get();
 
-  return {
-    key,
-  }
+  return selector
 }
