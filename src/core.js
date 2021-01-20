@@ -108,7 +108,6 @@ export const selector = async ({key, get}) => {
    * @returns {any} state
    */
   const getAtom = (atom) => {
-    console.log(atom);
     atom.addEventListener(key, updateSelectorVal);
     parents.add(atom.key);
     atom.children.add(key);
@@ -120,11 +119,10 @@ export const selector = async ({key, get}) => {
    * @returns {Promise<any>} state
    */
   const getSelector = async (parentSelector) => {
-    const { key: parentKey } = await parentSelector;
-    const parent = selectors.get(parentKey);
-    parent.addEventListener(parentKey, updateSelectorVal);
+    const parent = await parentSelector;
+    parent.addEventListener(parent.key, updateSelectorVal);
   
-    parents.add(parentKey);
+    parents.add(parent.key);
     parent.children.add(key);
     return parent.value;
   }

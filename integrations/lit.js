@@ -1,4 +1,4 @@
-import { selectors, updateAtom } from '../src/core.js';
+import { updateAtom } from '../src/core.js';
 
 export const LitAtom = (klass) => class LitAtom extends klass {
   constructor() {
@@ -18,10 +18,10 @@ export const LitAtom = (klass) => class LitAtom extends klass {
     });
 
     this.constructor.selectors?.forEach(async (selector) => {
-      const { key } = await selector;
-      const currSelector = selectors.get(key);
-      currSelector.addEventListener(key, this.__selectorUpdate);
-      this[key] = currSelector.value;
+      const currSelector = await selector;
+      currSelector.addEventListener(currSelector.key, this.__selectorUpdate);
+      this[currSelector.key] = currSelector.value;
+      this[`__${currSelector.key}`] = currSelector;
     });
 
     this.scheduleUpdate();
@@ -34,25 +34,22 @@ export const LitAtom = (klass) => class LitAtom extends klass {
     });
 
     this.constructor.selectors?.forEach(async (selector) => {
-      const { key } = await selector;
-      const currSelector = selectors.get(key);
-      currSelector.removeEventListener(key, this.__selectorUpdate);
+      const currSelector = await selector;
+      currSelector.removeEventListener(selector.key, this.__selectorUpdate);
     });
     super.disconnectedCallback?.();
   }
 
   __atomUpdate(e) {
     const { key } = e.detail;
-    this[key] = this[`__${atom.key}`].getState();
+    this[key] = this[`__${key}`].getState();
     // console.log('[ATOM]', key, this[key])
     this.scheduleUpdate();
   }
 
   __selectorUpdate(e) {
     const { key } = e.detail;
-    const selector = selectors.get(key);
-
-    this[key] = selector.value;
+    this[key] = this[`__${key}`].value;
     // console.log('[SELECTOR]', key, this[key]);
     this.scheduleUpdate();
   }
