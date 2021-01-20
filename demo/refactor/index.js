@@ -31,7 +31,9 @@ const doubleCountPlusOne = selector({
   }
 });
 
-
+console.log(count);
+console.log(query);
+console.log(doubleCount);
 
 console.log(count.getState());
 setCount(2);

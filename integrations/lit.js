@@ -30,7 +30,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
   disconnectedCallback() {
     this.constructor.atoms?.forEach((atom) => {
       atom.cleanupEffects.forEach(effect => effect());
-      atom.removeEventListener(key, this.__atomUpdate);
+      atom.removeEventListener(atom.key, this.__atomUpdate);
     });
 
     this.constructor.selectors?.forEach(async (selector) => {

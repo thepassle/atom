@@ -1,6 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
 import { LitElement } from 'lit-element';
-import { LitAtom } from '../../src/lit.js';
+import { LitAtom } from '../../integrations/lit.js';
 import { atom, selector } from '../../src/core.js';
 
 const [count, setCount] = atom({

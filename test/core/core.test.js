@@ -1,5 +1,5 @@
 import { expect, nextFrame } from '@open-wc/testing';
-import { atom, selector, atoms, selectors } from '../../src/core.js';
+import { atom, selector } from '../../src/core.js';
 import { spy } from 'hanbi';
 
 const [A, setA] = atom({key: 'foo', default: 1});
@@ -8,13 +8,6 @@ describe('atoms', () => {
   it('initializes an atom', () => {
     expect(A.key).to.equal('foo');
     expect(A.getState()).to.equal(1);
-  });
-
-  it('initializes an atom and stores it', () => {
-    const stored = atoms.get('foo');
-    expect(stored.key).to.equal('foo');
-    expect(stored.state).to.equal(1);
-    expect(stored.effects).to.deep.equal([]);
   });
 
   it('updates the state of an atom', () => {
@@ -125,7 +118,7 @@ describe('selectors', async () => {
   });
 
   it('initializes a selector', async () => {
-    expect(S).to.deep.equal({ key: 'S' });
+    expect(S.key).to.deep.equal('S');
   });
 
   it('depends on atoms', async () => {
@@ -142,10 +135,9 @@ describe('selectors', async () => {
       }
     });
 
-    expect(selectors.get('doubleCount').value).to.equal(2);
-    selectors.get('doubleCount').active = 1;
+    expect(doubleCount.value).to.equal(2);
     setCount(2);
     await nextFrame();
-    expect(selectors.get('doubleCount').value).to.equal(4);
+    expect(doubleCount.value).to.equal(4);
   });
 });
