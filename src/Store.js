@@ -15,14 +15,11 @@ export class Atom extends Store {
   state;
   effects = [];
   cleanupEffects = [];
-  // Atoms can have Selectors as dependencies
   loadable;
 
   getState() {
     return this.state;
   }
-
-  
 }
 
 export class Selector extends Store {
