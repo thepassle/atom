@@ -1,5 +1,3 @@
-import { updateAtom } from '../src/core.js';
-
 export const LitAtom = (klass) => class LitAtom extends klass {
   constructor() {
     super();
@@ -13,7 +11,7 @@ export const LitAtom = (klass) => class LitAtom extends klass {
 
     this.constructor.atoms?.forEach((atom) => {
       atom.addEventListener(atom.key, this.__atomUpdate);
-      this[atom.key] = atom.state;
+      this[atom.key] = atom.getState();
       this[`__${atom.key}`] = atom;
     });
 
@@ -75,14 +73,6 @@ export const LitAtom = (klass) => class LitAtom extends klass {
         // console.log(`✅ [UPDATED] <${this.localName}>`);
       });
     }
-  }
-
-  /**
-   * @param {atom} atom 
-   * @param {any | ((oldState: any) => any)} val 
-   */
-  updateAtom(atom, val) {
-    updateAtom(atom, val);
   }
 
   __createDeferredPromise() {

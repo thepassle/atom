@@ -2,8 +2,8 @@ import { Atom, Selector } from "./Store.js";
 
 /**
  * @typedef {Object} selectorCallbacks
- * @property {(a: atom) => any} getAtom
- * @property {(s: selector) => Promise<any>} getSelector
+ * @property {(a: Atom) => any} getAtom
+ * @property {(s: Selector) => Promise<any>} getSelector
  */
 
 /**
@@ -21,51 +21,19 @@ import { Atom, Selector } from "./Store.js";
  */
 
 /**
- * @typedef {Promise} selector
- * @property {string} key
- */
-
-/**
- * @typedef {Object} atom
- * @property {string} key
- * @property {() => any} getState
- * @property {() => void} update
- */
-
-
-/** @param {Atom} atom */
-const notify = atom => {
-  atom.notify();
-  atom.children?.forEach(child => {
-    atom.dispatchEvent(new CustomEvent(child, { detail: {key: child}}))
-  });
-}
-
-/**
- * @param {Atom} atom 
- * @param {any | (() => any)} val 
- */
-export const updateAtom = (atom, val) => {
-  atom.state = typeof val === 'function' ? val(atom.state) : val;
-  notify(atom);
-  atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];
-}
-
-
-/**
  * @param {atomOptions} atomOptions 
- * @returns {[atom, (val?: any) => void | ((val?: any) => Promise<any>)]}
+ * @returns {[Atom, (val?: any) => void | ((val?: any) => Promise<any>)]}
  */
 export const atom = ({key, default: val, loadable, effects}) => {
   const atom = new Atom();
 
   if(val && loadable) throw new Error("Atom can't have a default and be loadable");
 
-  atom.state = typeof val === 'function' ? val() : val;
-
   if(loadable) {
-    atom.state = { status: 'initialized', result: null };
+    atom.setState({ status: 'initialized', result: null });
     atom.loadable = loadable;
+  } else {
+    atom.setState(typeof val === 'function' ? val() : val);
   }
 
   atom.effects = effects || [];
@@ -76,26 +44,23 @@ export const atom = ({key, default: val, loadable, effects}) => {
     atom,
     loadable 
       ? (val) => {
-          atom.state.status = 'loading';
-
-          notify(atom);
-          atom.cleanupEffects = atom.effects?.map(effect => effect()) || [];
+          atom.setState({status: 'loading', result: null});
 
           return atom.loadable(val)
-            .then((res) => {atom.state = {status: 'success', result: res}})
-            .catch((err) => {atom.state = {status: 'error', result: err}})
-            .finally(() => {notify(atom)});
+            .then((res) => {atom.setState({status: 'success', result: res})})
+            .catch((err) => {atom.setState({status: 'error', result: err})})
         }
       : (val) => {
-          updateAtom(atom, val);
+          atom.setState(val);
         }
     ]
 }
 
-
-/** @param {selectorOptions} selector */
+/** 
+ * @param {selectorOptions} options
+ * @return {Selector} selector
+ */
 export const selector = async ({key, get}) => {
-  const parents = new Set();
   const selector = new Selector();
 
   const updateSelectorVal = async () => {
@@ -104,25 +69,23 @@ export const selector = async ({key, get}) => {
   }
 
   /**
-   * @param {atom} atom 
+   * @param {Atom} atom 
    * @returns {any} state
    */
   const getAtom = (atom) => {
     atom.addEventListener(key, updateSelectorVal);
-    parents.add(atom.key);
     atom.children.add(key);
-    return atom.state;
+    return atom.getState();
   }
 
   /**
-   * @param {selector} parentSelector 
+   * @param {Selector} parentSelector 
    * @returns {Promise<any>} state
    */
   const getSelector = async (parentSelector) => {
     const parent = await parentSelector;
     parent.addEventListener(parent.key, updateSelectorVal);
   
-    parents.add(parent.key);
     parent.children.add(key);
     return parent.value;
   }
@@ -131,8 +94,7 @@ export const selector = async ({key, get}) => {
 
   selector.key = key;
   selector.get = createGet({getAtom, getSelector});
-  selector.parents = parents;
   selector.value = await selector.get();
 
-  return selector
+  return selector;
 }
