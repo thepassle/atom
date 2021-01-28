@@ -1,5 +1,3 @@
-import { atoms, selectors, updateAtom } from '../src/core.js';
-
 export const LitAtom = (klass) => class LitAtom extends klass {
   constructor() {
     super();
@@ -11,51 +9,45 @@ export const LitAtom = (klass) => class LitAtom extends klass {
   async connectedCallback() {
     super.connectedCallback?.();
 
-    this.constructor.atoms?.forEach(({key}) => {
-      const atom = atoms.get(key);
-      atom.addEventListener(key, this.__atomUpdate);
-      this[key] = atom.state;
+    this.constructor.atoms?.forEach((atom) => {
+      atom.addEventListener(atom.key, this.__atomUpdate);
+      this[atom.key] = atom.getState();
+      this[`__${atom.key}`] = atom;
     });
 
     this.constructor.selectors?.forEach(async (selector) => {
-      const { key } = await selector;
-      const currSelector = selectors.get(key);
-      currSelector.addEventListener(key, this.__selectorUpdate);
-      this[key] = currSelector.value;
+      const currSelector = await selector;
+      currSelector.addEventListener(currSelector.key, this.__selectorUpdate);
+      this[currSelector.key] = currSelector.value;
+      this[`__${currSelector.key}`] = currSelector;
     });
 
     this.scheduleUpdate();
   }
 
   disconnectedCallback() {
-    this.constructor.atoms?.forEach(({key}) => {
-      const store = atoms.get(key);
-      store.cleanupEffects.forEach(effect => effect());
-      store.removeEventListener(key, this.__atomUpdate);
+    this.constructor.atoms?.forEach((atom) => {
+      atom.cleanupEffects.forEach(effect => effect());
+      atom.removeEventListener(atom.key, this.__atomUpdate);
     });
 
     this.constructor.selectors?.forEach(async (selector) => {
-      const { key } = await selector;
-      const currSelector = selectors.get(key);
-      currSelector.removeEventListener(key, this.__selectorUpdate);
+      const currSelector = await selector;
+      currSelector.removeEventListener(selector.key, this.__selectorUpdate);
     });
     super.disconnectedCallback?.();
   }
 
   __atomUpdate(e) {
     const { key } = e.detail;
-    const store = atoms.get(key);
-
-    this[key] = store.state;
+    this[key] = this[`__${key}`].getState();
     // console.log('[ATOM]', key, this[key])
     this.scheduleUpdate();
   }
 
   __selectorUpdate(e) {
     const { key } = e.detail;
-    const selector = selectors.get(key);
-
-    this[key] = selector.value;
+    this[key] = this[`__${key}`].value;
     // console.log('[SELECTOR]', key, this[key]);
     this.scheduleUpdate();
   }
@@ -81,15 +73,6 @@ export const LitAtom = (klass) => class LitAtom extends klass {
         // console.log(`✅ [UPDATED] <${this.localName}>`);
       });
     }
-  }
-
-  /**
-   * @param {atom} atom 
-   * @param {any | ((oldState: any) => any)} val 
-   */
-  updateAtom({key}, val) {
-    const atom = atoms.get(key);
-    updateAtom(atom, val);
   }
 
   __createDeferredPromise() {

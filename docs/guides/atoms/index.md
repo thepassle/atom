@@ -94,24 +94,6 @@ setCount(2);
 setCount(old => old + 1);
 ```
 
-### Updating Atoms with the `LitAtom` Mixin
-
-If you're using the `LitAtom` Mixin, you can also call `this.updateAtom`. `updateAtom` takes an Atom, and either a value or a function.
-
-```js
-class MyCounter extends LitAtom(LitElement) {
-  static atoms = [count];
-
-  render() {
-    return html`
-      <h1>count: ${this.count}</h1>
-      <button @click=${() => this.updateAtom(count, old => old + 1)}>increment</button>
-      <button @click=${() => this.updateAtom(count, old => old - 1)}>decrement</button>
-    `;
-  }
-}
-```
-
 ## Sharing Atoms
 
 Atoms can be shared across many different components, independent from eachother. Any component that subscribes to an Atom will be updated and rerendered as soon as that Atom changes.

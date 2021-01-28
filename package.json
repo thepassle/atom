@@ -1,8 +1,15 @@
 {
   "name": "@klaxon/atom",
-  "version": "0.0.8",
-  "description": "",
+  "version": "0.1.0",
+  "description": "A flexible state manager",
   "main": "index.js",
+  "module": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "src",
+    "integrations"
+  ],
   "scripts": {
     "start": "wds --watch --node-resolve",
     "test": "wtr test/**/*.test.js --node-resolve",
@@ -12,7 +19,7 @@
     "devtools:build": "rimraf dist && rollup -c rollup.config.js",
     "devtools:build:watch": "rimraf dist && rollup -c --watch rollup.config.js"
   },
-  "keywords": [],
+  "keywords": ["state", "manager", "atom", "statemanager", "webcomponents", "customelements"],
   "author": "",
   "license": "ISC",
   "devDependencies": {

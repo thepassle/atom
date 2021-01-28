@@ -1,6 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
 import { LitElement } from 'lit-element';
-import { LitAtom } from '../../src/lit.js';
+import { LitAtom } from '../../integrations/lit.js';
 import { atom, selector } from '../../src/core.js';
 
 const [count, setCount] = atom({
@@ -20,16 +20,10 @@ describe('lit', () => {
       expect(el.count).to.equal(1);
     });
   
-    it('updates correctly with `this.updateAtom`', async () => {
-      const el = await fixture('<basic-atom></basic-atom>');
-      el.updateAtom(count, 2);
-      expect(el.count).to.equal(2);
-    });
-  
     it('updates correctly with `setCount`', async () => {
       const el = await fixture('<basic-atom></basic-atom>');
       setCount(old => old + 1);
-      expect(el.count).to.equal(3);
+      expect(el.count).to.equal(2);
     });
   });
 
