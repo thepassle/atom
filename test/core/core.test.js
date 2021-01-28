@@ -7,6 +7,9 @@ const [A, setA] = atom({key: 'foo', default: 1});
 describe('atoms', () => {
   it('initializes an atom', () => {
     expect(A.key).to.equal('foo');
+    expect(A.effects).to.deep.equal([]);
+    expect(A.cleanupEffects).to.deep.equal([]);
+    expect(A.loadable).to.equal(undefined);
     expect(A.getState()).to.equal(1);
   });
 

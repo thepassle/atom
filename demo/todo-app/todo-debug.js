@@ -8,7 +8,7 @@ const createTodo = id => atom({
   key: id,
   default: { id, text: "", isComplete: false },
   // trigger an update on the `todos` atom whenever a todo is created, to make sure `todos` is in sync
-  effects: [todos.update]
+  effects: [todos.notify.bind(todos)]
 });
 
 const addTodo = () => {
